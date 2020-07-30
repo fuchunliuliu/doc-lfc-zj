@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="origin" />
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <title>KVM 初探 - 长亭ctim - 博客园</title>
+    <meta property="og:description" content="本文首发于我的公众号 Linux云计算网络（id: cloud_dev） ，专注于干货分享，号内有 10T 书籍和视频资源，后台回复 「1024」 即可领取，欢迎大家关注，二维码文末可以扫。 KVM " />
+    <link type="text/css" rel="stylesheet" href="/bundles/blog-common.css?v=KOZafwuaDasEedEenI5aTy8aXH0epbm6VUJ0v3vsT_Q1"/>
+<link id="MainCss" type="text/css" rel="stylesheet" href="/skins/Custom/bundle-Custom.css?v=Z683z9azGWin6jOfOyAHK6FgPVxm_nmCnl3EFztc2eE1"/>
+<link type="text/css" rel="stylesheet" href="/blog/customcss/124300.css?v=JhwZO1D1adarLhU1VVmMFze%2fyXk%3d"/>
+<link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="/skins/Custom/bundle-Custom-mobile.css?v=_msYCBCTPwxsehifP8ZdBI6kxamcIjzp-IKwPnrrPeg1"/>
+    <link title="RSS" type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/bakari/rss"/>
+    <link title="RSD" type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/bakari/rsd.xml"/>
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/bakari/wlwmanifest.xml"/>
+    <script src="//common.cnblogs.com/scripts/jquery-2.2.0.min.js"></script>
+    <script>var currentBlogId=124300;var currentBlogApp='bakari',cb_enable_mathjax=true;var isLogined=true;</script>
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']], processClass: 'math', processEscapes: true },
+        TeX: { 
+            equationNumbers: { autoNumber: ['AMS'], useLabelIds: true }, 
+            extensions: ['extpfeil.js'],
+            Macros: {bm: "\\boldsymbol"}
+        },
+        'HTML-CSS': { linebreaks: { automatic: true } },
+        SVG: { linebreaks: { automatic: true } }
+        });
+    </script><script src="//mathjax.cnblogs.com/2_7_2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script src="/bundles/blog-common.js?v=smtcUT5dhdu_5eEO8CKHYoVc7DPLgEBGzp6zKkstlzg1" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+
+<!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+	<a id="lnkBlogLogo" href="https://www.cnblogs.com/bakari/"><img id="blogLogo" src="/Skins/custom/images/logo.gif" alt="返回主页" /></a>			
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="https://www.cnblogs.com/bakari/">公众号：Linux云计算网络</a></h1>
+<h2>专注 Linux、网络、云计算技术栈，欢迎关注我的微信公众号「Linux云计算网络」</h2>
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+	<div id="navigator">
+		
+<ul id="navList">
+<li><a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/">博客园</a></li>
+<li><a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/bakari/">首页</a></li>
+<li><a id="blog_nav_newpost" class="menu" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+<li><a id="blog_nav_contact" class="menu" rel="nofollow" href="https://msg.cnblogs.com/send/%E9%95%BF%E4%BA%ADctim">联系</a></li>
+<li><a id="blog_nav_rss" class="menu" href="https://www.cnblogs.com/bakari/rss">订阅</a>
+<!--<a id="blog_nav_rss_image" class="aHeaderXML" href="https://www.cnblogs.com/bakari/rss"><img src="//www.cnblogs.com/images/xml.gif" alt="订阅" /></a>--></li>
+<li><a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+</ul>
+		<div class="blogStats">
+			
+			<div id="blog_stats">
+<span id="stats_post_count">随笔 - 194&nbsp; </span>
+<span id="stats_article_count">文章 - 1&nbsp; </span>
+<span id="stats-comment_count">评论 - 155</span>
+</div>
+			
+		</div><!--end: blogStats -->
+	</div><!--end: navigator 博客导航栏 -->
+</div><!--end: header 头部 -->
+
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		
+        <div id="post_detail">
+<!--done-->
+<div id="topics">
+	<div class = "post">
+		<h1 class = "postTitle">
+			<a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/bakari/p/8167539.html">KVM 初探</a>
+		</h1>
+		<div class="clear"></div>
+		<div class="postBody">
+			<div id="cnblogs_post_body" class="blogpost-body cnblogs-markdown"><blockquote>
+<p>本文首发于我的公众号 <strong>Linux云计算网络（id: cloud_dev）</strong>，专注于干货分享，号内有 <strong>10T</strong> 书籍和视频资源，后台回复<strong>「1024」</strong>即可领取，欢迎大家关注，二维码文末可以扫。</p>
+</blockquote>
+<p>KVM 是业界最为流行的 Hypervisor，全称是 Kernel-based Virtual Machine。它是作为 Linux kernel 中的一个内核模块而存在，模块名为 kvm.ko，也可以看作是一个进程，被内核调度并管理，从 Linux 2.6.20 版本开始被完全正式加入到内核的主干开发和正式发布代码中。 KVM 主要用于管理 CPU 和内存的虚拟化，IO 设备的虚拟化则是由 Qemu 来完成。为什么会有这样的分工，请继续往下看。</p>
+<h2 id="kvm-与-qemu-的前世今生">KVM 与 Qemu 的前世今生</h2>
+<p>Qemu 是一个纯软件实现的开源「模拟」软件，它能够模拟整套虚拟机的实现，包括 CPU、内存、各种 IO 设备、鼠标、键盘、USB 、网卡、声卡等等，基本上没有它不能模拟的。有人可能会比较疑惑它跟 KVM 之间到底有何关系，我们可以把它们看成是合作关系，好基友，谁都离不开彼此。</p>
+<p><strong>KVM 离不开 Qemu</strong>。KVM 实现初期，为了简化开发和代码重用，在 Qemu 的基础上进行了修改，主要是将比较耗性能的 CPU 虚拟化和内存虚拟化部分移到了内核中实现，保留 IO 虚拟化模块在用户空间实现。这样的做法主要是考虑到性能的原因，CPU 和 内存虚拟化是非常复杂的虚拟化模块，而且使用非常频繁，如果实现在用户空间的话，用户态和内核态的频繁切换势必会对性能造成很大的影响。那为什么要单独保留 IO 虚拟化在用户空间呢，这个也是权衡之下的结果，首先 IO 设备太多了，其次 IO 虚拟化相对其他两个模块使用不是很频繁，开销会小一些，所以，为了尽可能保持内核的纯净性，才有了这样的分配。</p>
+<p><strong>Qemu 离不开 KVM</strong>。上面也说了，Qemu 是一个纯软件的实现，运行在用户空间，性能非常低下，所以，从 Qemu 的角度，可以说是 Qemu 使用了 KVM 的虚拟化功能，为自身虚拟机提供加速。</p>
+<p>早期两者还没有区分（没有同居），KVM 修改的模块叫 qemu-kvm，到 Qemu1.3 版本之后，两者就合二为一了（同居啦），如果我们在用 Qemu 创建虚拟机时，要加载 KVM 模块，需要为其指定参数 --enable-kvm。</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201801/431521-20180101150420284-1946220647.png" /></p>
+<h2 id="kvm-架构">KVM 架构</h2>
+<p>KVM 是基于硬件虚拟化（Intel VT 或 AMD-V）实现的一套虚拟化解决方案，通过以上一个与 Qemu 关系的分析，我们基本上知道它在虚拟化领域处在一个什么样的地位。它其实只负责 CPU 和内存的虚拟化，不负责任何设备的模拟，而是提供接口给用户空间的 Qemu 来模拟。这个接口是 /dev/kvm，<br />
+Qemu 通过 /dev/kvm 接口设置一个虚拟机的地址空间，然后向它提供模拟好的 I/O 设备，并将相关的设备回显操作映射到宿主机，完成整个 I/O 设备的虚拟化操作。</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201801/431521-20180101150434534-796729814.png" /></p>
+<p>/dev/kvm 接口是 Qemu 和 KVM 交互的“桥梁”，基本的原理是：/dev/kvm 本身是一个设备文件，这就意味着可以通过 ioctl 函数来对该文件进行控制和管理，从而可以完成用户空间与内核空间的数据交互。在 KVM 与 Qemu 的通信过程主要就是一系列针对该设备文件的 ioctl 调用。</p>
+<p>我就拿创建虚拟机举个例子，虚拟机本质上是宿主机的一个进程，包括用户态数据结构和内核态数据结构，用户态部分由 Qemu 创建并初始化，内核态部分则由 KVM 来完成，完成后会返回一个文件句柄来代表所创建的虚拟机，针对该文件句柄的 ioctl 调用就可以对虚拟机进行相应的管理，比如建立虚拟机地址空间和宿主机地址空间的映射关系，创建多个线程（虚拟处理器，vCPU）来供虚拟机使用等，对于创建出的 vCPU，也会生成相应的文件句柄，同样，对 vCPU 的文件句柄的 ioctl 调用就可以对 vCPU 进行管理。</p>
+<p>关于这块的具体细节，后面会有文章来专门讨论。</p>
+<h2 id="vmm-管理工具-libvirt">VMM 管理工具 —— libvirt</h2>
+<p>目前，虚拟化这个领域可以说是百花齐放，针对不同的场景提出了很多的虚拟化解决方案，KVM、Xen、VMware、VirtualBox、Hyper-V 等等，具体的这些方案有什么特点，可以看前文「虚拟化技术总览」。这么多方案势必有很多通用的模块，不同之处可能在于，与不同硬件厂商的适配上，为了支持更多厂商，以及应用更多的领域，有很多 IaaS 解决方案需要融合多种虚拟化技术。这个时候如果有一个平台类的管理工具就会非常方便，libvirt 就是这样一个工具。</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201801/431521-20180101150450503-1747651158.png" /></p>
+<p>libvirt 除了能够支持多种虚拟化方案之外，还支持 OpenVZ、LXC 等容器虚拟化系统。它提供一套完善的虚拟机管理工具，支持 GUI 和命令行的形式，如 virsh、virt-install、virt-manager。由于它的通用性和易管理，很多云计算框架平台都在底层使用 libvirt 的 API 来管理虚拟机，比如 OpenStack、OpenNebula、Eucalyptus 等。这个工具我们仅仅提一下，有兴趣的可以装个玩玩。</p>
+<p>下面给出 KVM 和 Qemu 的 git 路径，有兴趣的可以把源码下下来研究下。</p>
+<pre><code>kvm.git：
+git clone git://git.kernel.org/pub/scm/virt/kvm/kvm.git
+qemu.git（包括了 kvm）:
+git clone git://git.qemu-project.org/qemu.git</code></pre>
+<p>我的博客即将入驻“云栖社区”，诚邀技术同仁一同入驻。</p>
+<hr />
+<blockquote>
+<p>我的公众号 <strong>「Linux云计算网络」(id: cloud_dev)</strong> ，号内有 <strong>10T</strong> 书籍和视频资源，后台回复 <strong>「1024」</strong> 即可领取，分享的内容包括但不限于 Linux、网络、云计算虚拟化、容器Docker、OpenStack、Kubernetes、工具、SDN、OVS、DPDK、Go、Python、C/C++编程技术等内容，欢迎大家关注。</p>
+</blockquote>
+<blockquote>
+<p><img src="https://img2018.cnblogs.com/blog/431521/201904/431521-20190415111037844-1058636985.png" /></p>
+</blockquote>
+</div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory"></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info">
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"></div>
+</div>
+
+
+		</div>
+		<div class = "postDesc">posted @ <span id="post-date">2018-01-01 15:08</span> <a href='https://www.cnblogs.com/bakari/'>ctimbai</a> 阅读(<span id="post_view_count">...</span>) 评论(<span id="post_comment_count">...</span>)  <a href ="https://i.cnblogs.com/EditPosts.aspx?postid=8167539" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(8167539);return false;">收藏</a></div>
+	</div>
+	<script src="//common.cnblogs.com/highlight/9.12.0/highlight.min.js"></script><script>markdown_highlight();</script><script type="text/javascript">var allowComments=true,cb_blogId=124300,cb_entryId=8167539,cb_blogApp=currentBlogApp,cb_blogUserGuid='0bb9f45d-f5d6-e111-aa3f-842b2b196315',cb_entryCreatedDate='2018/1/1 15:08:00';loadViewCount(cb_entryId);var cb_postType=1;var isMarkdown=true;</script>
+	
+</div><!--end: topics 文章、评论容器-->
+</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id='comment_form' class='commentform'>
+<a name='commentform'></a>
+<div id='divCommentShow'></div>
+<div id='comment_nav'><span id='span_refresh_tips'></span><a href='javascript:void(0);' onclick='return RefreshCommentList();' id='lnk_RefreshComments' runat='server' clientidmode='Static'>刷新评论</a><a href='#' onclick='return RefreshPage();'>刷新页面</a><a href='#top'>返回顶部</a></div>
+<div id='comment_form_container'></div>
+<div class='ad_text_commentbox' id='ad_text_under_commentbox'></div>
+<div id='ad_t2'></div>
+<div id='opt_under_post'></div>
+<script async='async' src='https://www.googletagservices.com/tag/js/gpt.js'></script>
+<script>
+  var googletag = googletag || {};
+  googletag.cmd = googletag.cmd || [];
+</script>
+<script>
+  googletag.cmd.push(function() {
+        googletag.defineSlot('/1090369/C1', [300, 250], 'div-gpt-ad-1546353474406-0').addService(googletag.pubads());
+        googletag.defineSlot('/1090369/C2', [468, 60], 'div-gpt-ad-1539008685004-0').addService(googletag.pubads());
+        googletag.pubads().enableSingleRequest();
+        googletag.enableServices();
+  });
+</script>
+<div id='cnblogs_c1' class='c_ad_block'>
+    <div id='div-gpt-ad-1546353474406-0' style='height:250px; width:300px;'></div>
+</div>
+<div id='under_post_news'></div>
+<div id='cnblogs_c2' class='c_ad_block'>
+    <div id='div-gpt-ad-1539008685004-0' style='height:60px; width:468px;'></div>
+</div>
+<div id='under_post_kb'></div>
+<div id='HistoryToday' class='c_ad_block'></div>
+<script type='text/javascript'>
+ if(enablePostBottom()) {
+    codeHighlight();
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverT2();
+    deliverC1();
+    deliverC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);  
+}
+</script>
+</div>
+
+    
+	</div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+
+	<div id="sideBar">
+		<div id="sideBarMain">
+			
+<!--done-->
+<div class="newsItem">
+<h3 class="catListTitle">公告</h3>
+	<div id="blog-news"></div><script type="text/javascript">loadBlogNews();</script>
+</div>
+
+			<div id="blog-calendar" style="display:none"></div><script type="text/javascript">loadBlogDefaultCalendar();</script>
+			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn"></div><script type="text/javascript">loadBlogSideColumn();</script>
+			</div>
+			
+		</div><!--end: sideBarMain -->
+	</div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<div id="footer">
+		
+<!--done-->
+Copyright &copy;2019 长亭ctim
+	</div><!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+
+</body>
+</html>

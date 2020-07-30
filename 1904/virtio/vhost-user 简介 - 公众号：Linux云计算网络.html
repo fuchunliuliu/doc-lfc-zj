@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="origin" />
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <title>vhost-user 简介 - 长亭ctim - 博客园</title>
+    <meta property="og:description" content="本文首发于我的公众号 Linux云计算网络（id: cloud_dev） ，专注于干货分享，号内有 10T 书籍和视频资源，后台回复 「1024」 即可领取，欢迎大家关注，二维码文末可以扫。 什么是 " />
+    <link type="text/css" rel="stylesheet" href="/bundles/blog-common.css?v=KOZafwuaDasEedEenI5aTy8aXH0epbm6VUJ0v3vsT_Q1"/>
+<link id="MainCss" type="text/css" rel="stylesheet" href="/skins/Custom/bundle-Custom.css?v=Z683z9azGWin6jOfOyAHK6FgPVxm_nmCnl3EFztc2eE1"/>
+<link type="text/css" rel="stylesheet" href="/blog/customcss/124300.css?v=JhwZO1D1adarLhU1VVmMFze%2fyXk%3d"/>
+<link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="/skins/Custom/bundle-Custom-mobile.css?v=_msYCBCTPwxsehifP8ZdBI6kxamcIjzp-IKwPnrrPeg1"/>
+    <link title="RSS" type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/bakari/rss"/>
+    <link title="RSD" type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/bakari/rsd.xml"/>
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/bakari/wlwmanifest.xml"/>
+    <script src="//common.cnblogs.com/scripts/jquery-2.2.0.min.js"></script>
+    <script>var currentBlogId=124300;var currentBlogApp='bakari',cb_enable_mathjax=true;var isLogined=true;</script>
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']], processClass: 'math', processEscapes: true },
+        TeX: { 
+            equationNumbers: { autoNumber: ['AMS'], useLabelIds: true }, 
+            extensions: ['extpfeil.js'],
+            Macros: {bm: "\\boldsymbol"}
+        },
+        'HTML-CSS': { linebreaks: { automatic: true } },
+        SVG: { linebreaks: { automatic: true } }
+        });
+    </script><script src="//mathjax.cnblogs.com/2_7_2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script src="/bundles/blog-common.js?v=smtcUT5dhdu_5eEO8CKHYoVc7DPLgEBGzp6zKkstlzg1" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+
+<!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+	<a id="lnkBlogLogo" href="https://www.cnblogs.com/bakari/"><img id="blogLogo" src="/Skins/custom/images/logo.gif" alt="返回主页" /></a>			
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="https://www.cnblogs.com/bakari/">公众号：Linux云计算网络</a></h1>
+<h2>专注 Linux、网络、云计算技术栈，欢迎关注我的微信公众号「Linux云计算网络」</h2>
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+	<div id="navigator">
+		
+<ul id="navList">
+<li><a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/">博客园</a></li>
+<li><a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/bakari/">首页</a></li>
+<li><a id="blog_nav_newpost" class="menu" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+<li><a id="blog_nav_contact" class="menu" rel="nofollow" href="https://msg.cnblogs.com/send/%E9%95%BF%E4%BA%ADctim">联系</a></li>
+<li><a id="blog_nav_rss" class="menu" href="https://www.cnblogs.com/bakari/rss">订阅</a>
+<!--<a id="blog_nav_rss_image" class="aHeaderXML" href="https://www.cnblogs.com/bakari/rss"><img src="//www.cnblogs.com/images/xml.gif" alt="订阅" /></a>--></li>
+<li><a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+</ul>
+		<div class="blogStats">
+			
+			<div id="blog_stats">
+<span id="stats_post_count">随笔 - 194&nbsp; </span>
+<span id="stats_article_count">文章 - 1&nbsp; </span>
+<span id="stats-comment_count">评论 - 155</span>
+</div>
+			
+		</div><!--end: blogStats -->
+	</div><!--end: navigator 博客导航栏 -->
+</div><!--end: header 头部 -->
+
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		
+        <div id="post_detail">
+<!--done-->
+<div id="topics">
+	<div class = "post">
+		<h1 class = "postTitle">
+			<a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/bakari/p/8421743.html">vhost-user 简介</a>
+		</h1>
+		<div class="clear"></div>
+		<div class="postBody">
+			<div id="cnblogs_post_body" class="blogpost-body cnblogs-markdown"><blockquote>
+<p>本文首发于我的公众号 <strong>Linux云计算网络（id: cloud_dev）</strong>，专注于干货分享，号内有 <strong>10T</strong> 书籍和视频资源，后台回复<strong>「1024」</strong>即可领取，欢迎大家关注，二维码文末可以扫。</p>
+</blockquote>
+<h2 id="什么是-vhost-user">什么是 vhost-user</h2>
+<p>在 vhost 的方案中，由于 vhost 实现在内核中，guest 与 vhost 的通信，相较于原生的 virtio 方式性能上有了一定程度的提升，从 guest 到 kvm.ko 的交互只有一次用户态的切换以及数据拷贝。这个方案对于不同 host 之间的通信，或者 guest 到 host nic 之间的通信是比较好的，但是对于某些用户态进程间的通信，比如数据面的通信方案，openvswitch 和与之类似的 SDN 的解决方案，guest 需要和 host 用户态的 vswitch 进行数据交换，如果采用 vhost 的方案，guest 和 host 之间又存在多次的上下文切换和数据拷贝，为了避免这种情况，业界就想出将 vhost 从内核态移到用户态。这就是 vhost-user 的实现。</p>
+<h2 id="vhost-user-的实现">vhost-user 的实现</h2>
+<p>vhost-user 和 vhost 的实现原理是一样，都是采用 vring 完成共享内存，eventfd 机制完成事件通知。不同在于 vhost 实现在内核中，而 vhost-user 实现在用户空间中，用于用户空间中两个进程之间的通信，其采用共享内存的通信方式。</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201802/431521-20180206123334201-2057939448.png" /></p>
+<p>vhost-user 基于 C/S 的模式，采用 UNIX 域套接字（UNIX domain socket）来完成进程间的事件通知和数据交互，相比 vhost 中采用 ioctl 的方式，vhost-user 采用 socket 的方式大大简化了操作。</p>
+<p>vhost-user 基于 vring 这套通用的共享内存通信方案，只要 client 和 server 按照 vring 提供的接口实现所需功能即可，常见的实现方案是 client 实现在 guest OS 中，一般是集成在 virtio 驱动上，server 端实现在 qemu 中，也可以实现在各种数据面中，如 OVS，Snabbswitch 等虚拟交换机。</p>
+<p>如果使用 qemu 作为 vhost-user 的 server 端实现，在启动 qemu 时，我们需要指定 -mem-path 和 -netdev 参数，如：</p>
+<pre><code>$ qemu -m 1024 -mem-path /hugetlbfs,prealloc=on,share=on \
+-netdev type=vhost-user,id=net0,file=/path/to/socket \
+-device virtio-net-pci,netdev=net0</code></pre>
+<p>指定 -mem-path 意味着 qemu 会在 guest OS 的内存中创建一个文件，share=on 选项允许其他进程访问这个文件，也就意味着能访问 guest OS 内存，达到共享内存的目的。</p>
+<p>-netdev type=vhost-user 指定通信方案，file=/path/to/socket 指定 socket 文件。</p>
+<p>当 qemu 启动之后，首先会进行 vring 的初始化，并通过 socket 建立 C/S 的共享内存区域和事件机制，然后 client 通过 eventfd 将 virtio kick 事件通知到 server 端，server 端同样通过 eventfd 进行响应，完成整个数据交互。</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201802/431521-20180206123415326-877090045.png" /></p>
+<h2 id="几个例子">几个例子</h2>
+<p>开源社区中实现了一个项目 Vapp，主要是用来测试 vhost-user 的 C/S 模式的，github 地址如下：</p>
+<p><a href="https://github.com/virtualopensystems/vapp.git" class="uri">https://github.com/virtualopensystems/vapp.git</a></p>
+<p>使用：</p>
+<pre><code>$ git clone https://github.com/virtualopensystems/vapp.git
+$ cd vapp
+$ make
+// 运行 server 端
+$ ./vhost -s ./vhost.sock
+// 运行 client 端
+$ ./vhost -q ./vhost.sock</code></pre>
+<p>通过以上步骤，就可以启动 vhost-user 的 C/S 模式。</p>
+<p>另外还有例子就是集成在虚拟交换机 Snabbswitch 上的 vhost-user，通过以下方式获得 vhost-user 分支：</p>
+<pre><code>$ git clone -b vhostuser --recursive https://github.com/SnabbCo/snabbswitch.git
+$ cd snabbswitch
+$ make
+测试：
+$ sudo src/snabbswitch -t apps.vhost.vhost_user</code></pre>
+<p>还有例子就是 qemu 上的实现，这也是最原早的实现，同样通过以下方式来获得使用：</p>
+<pre><code>$ git clone -b vhost-user-v5 https://github.com/virtualopensystems/qemu.git
+$ mkdir qemu/obj
+$ cd qemu/obj/
+$ ../configure --target-list=x86_64-softmmu
+$ make -j</code></pre>
+<p>除此之外，还有很多的实现，如 OVS 和 DPDK 上都有实现，这实际上是集成了 vhost-user 的通用 API。</p>
+<h2 id="总结">总结</h2>
+<p>virtio，vhost，vhost-user 是基于场景和性能而提出的三种 guest 和 host 之间的通信方案，三种方案，各有优劣。</p>
+<p>vhost-user 用在很多数据面之上的进程间通信，效率高。</p>
+<hr />
+<p>我的博客即将入驻“云栖社区”，诚邀技术同仁一同入驻。</p>
+<hr />
+<blockquote>
+<p>我的公众号 <strong>「Linux云计算网络」(id: cloud_dev)</strong> ，号内有 <strong>10T</strong> 书籍和视频资源，后台回复 <strong>「1024」</strong> 即可领取，分享的内容包括但不限于 Linux、网络、云计算虚拟化、容器Docker、OpenStack、Kubernetes、工具、SDN、OVS、DPDK、Go、Python、C/C++编程技术等内容，欢迎大家关注。</p>
+</blockquote>
+<blockquote>
+<p><img src="https://img2018.cnblogs.com/blog/431521/201904/431521-20190415111037844-1058636985.png" /></p>
+</blockquote>
+</div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory"></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info">
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"></div>
+</div>
+
+
+		</div>
+		<div class = "postDesc">posted @ <span id="post-date">2018-02-06 12:37</span> <a href='https://www.cnblogs.com/bakari/'>ctimbai</a> 阅读(<span id="post_view_count">...</span>) 评论(<span id="post_comment_count">...</span>)  <a href ="https://i.cnblogs.com/EditPosts.aspx?postid=8421743" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(8421743);return false;">收藏</a></div>
+	</div>
+	<script src="//common.cnblogs.com/highlight/9.12.0/highlight.min.js"></script><script>markdown_highlight();</script><script type="text/javascript">var allowComments=true,cb_blogId=124300,cb_entryId=8421743,cb_blogApp=currentBlogApp,cb_blogUserGuid='0bb9f45d-f5d6-e111-aa3f-842b2b196315',cb_entryCreatedDate='2018/2/6 12:37:00';loadViewCount(cb_entryId);var cb_postType=1;var isMarkdown=true;</script>
+	
+</div><!--end: topics 文章、评论容器-->
+</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id='comment_form' class='commentform'>
+<a name='commentform'></a>
+<div id='divCommentShow'></div>
+<div id='comment_nav'><span id='span_refresh_tips'></span><a href='javascript:void(0);' onclick='return RefreshCommentList();' id='lnk_RefreshComments' runat='server' clientidmode='Static'>刷新评论</a><a href='#' onclick='return RefreshPage();'>刷新页面</a><a href='#top'>返回顶部</a></div>
+<div id='comment_form_container'></div>
+<div class='ad_text_commentbox' id='ad_text_under_commentbox'></div>
+<div id='ad_t2'></div>
+<div id='opt_under_post'></div>
+<script async='async' src='https://www.googletagservices.com/tag/js/gpt.js'></script>
+<script>
+  var googletag = googletag || {};
+  googletag.cmd = googletag.cmd || [];
+</script>
+<script>
+  googletag.cmd.push(function() {
+        googletag.defineSlot('/1090369/C1', [300, 250], 'div-gpt-ad-1546353474406-0').addService(googletag.pubads());
+        googletag.defineSlot('/1090369/C2', [468, 60], 'div-gpt-ad-1539008685004-0').addService(googletag.pubads());
+        googletag.pubads().enableSingleRequest();
+        googletag.enableServices();
+  });
+</script>
+<div id='cnblogs_c1' class='c_ad_block'>
+    <div id='div-gpt-ad-1546353474406-0' style='height:250px; width:300px;'></div>
+</div>
+<div id='under_post_news'></div>
+<div id='cnblogs_c2' class='c_ad_block'>
+    <div id='div-gpt-ad-1539008685004-0' style='height:60px; width:468px;'></div>
+</div>
+<div id='under_post_kb'></div>
+<div id='HistoryToday' class='c_ad_block'></div>
+<script type='text/javascript'>
+ if(enablePostBottom()) {
+    codeHighlight();
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverT2();
+    deliverC1();
+    deliverC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);  
+}
+</script>
+</div>
+
+    
+	</div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+
+	<div id="sideBar">
+		<div id="sideBarMain">
+			
+<!--done-->
+<div class="newsItem">
+<h3 class="catListTitle">公告</h3>
+	<div id="blog-news"></div><script type="text/javascript">loadBlogNews();</script>
+</div>
+
+			<div id="blog-calendar" style="display:none"></div><script type="text/javascript">loadBlogDefaultCalendar();</script>
+			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn"></div><script type="text/javascript">loadBlogSideColumn();</script>
+			</div>
+			
+		</div><!--end: sideBarMain -->
+	</div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<div id="footer">
+		
+<!--done-->
+Copyright &copy;2019 长亭ctim
+	</div><!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+
+</body>
+</html>

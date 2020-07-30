@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="origin" />
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <title>DPDK 全面分析 - 长亭ctim - 博客园</title>
+    <meta property="og:description" content="本文首发于我的公众号 Linux云计算网络（id: cloud_dev） ，专注于干货分享，号内有 10T 书籍和视频资源，后台回复 「1024」 即可领取，欢迎大家关注，二维码文末可以扫。 高性能网" />
+    <link type="text/css" rel="stylesheet" href="/bundles/blog-common.css?v=KOZafwuaDasEedEenI5aTy8aXH0epbm6VUJ0v3vsT_Q1"/>
+<link id="MainCss" type="text/css" rel="stylesheet" href="/skins/Custom/bundle-Custom.css?v=Z683z9azGWin6jOfOyAHK6FgPVxm_nmCnl3EFztc2eE1"/>
+<link type="text/css" rel="stylesheet" href="/blog/customcss/124300.css?v=JhwZO1D1adarLhU1VVmMFze%2fyXk%3d"/>
+<link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="/skins/Custom/bundle-Custom-mobile.css?v=_msYCBCTPwxsehifP8ZdBI6kxamcIjzp-IKwPnrrPeg1"/>
+    <link title="RSS" type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/bakari/rss"/>
+    <link title="RSD" type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/bakari/rsd.xml"/>
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/bakari/wlwmanifest.xml"/>
+    <script src="//common.cnblogs.com/scripts/jquery-2.2.0.min.js"></script>
+    <script>var currentBlogId=124300;var currentBlogApp='bakari',cb_enable_mathjax=true;var isLogined=true;</script>
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']], processClass: 'math', processEscapes: true },
+        TeX: { 
+            equationNumbers: { autoNumber: ['AMS'], useLabelIds: true }, 
+            extensions: ['extpfeil.js'],
+            Macros: {bm: "\\boldsymbol"}
+        },
+        'HTML-CSS': { linebreaks: { automatic: true } },
+        SVG: { linebreaks: { automatic: true } }
+        });
+    </script><script src="//mathjax.cnblogs.com/2_7_2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script src="/bundles/blog-common.js?v=smtcUT5dhdu_5eEO8CKHYoVc7DPLgEBGzp6zKkstlzg1" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+
+<!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+	<a id="lnkBlogLogo" href="https://www.cnblogs.com/bakari/"><img id="blogLogo" src="/Skins/custom/images/logo.gif" alt="返回主页" /></a>			
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="https://www.cnblogs.com/bakari/">公众号：Linux云计算网络</a></h1>
+<h2>专注 Linux、网络、云计算技术栈，欢迎关注我的微信公众号「Linux云计算网络」</h2>
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+	<div id="navigator">
+		
+<ul id="navList">
+<li><a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/">博客园</a></li>
+<li><a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/bakari/">首页</a></li>
+<li><a id="blog_nav_newpost" class="menu" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+<li><a id="blog_nav_contact" class="menu" rel="nofollow" href="https://msg.cnblogs.com/send/%E9%95%BF%E4%BA%ADctim">联系</a></li>
+<li><a id="blog_nav_rss" class="menu" href="https://www.cnblogs.com/bakari/rss">订阅</a>
+<!--<a id="blog_nav_rss_image" class="aHeaderXML" href="https://www.cnblogs.com/bakari/rss"><img src="//www.cnblogs.com/images/xml.gif" alt="订阅" /></a>--></li>
+<li><a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+</ul>
+		<div class="blogStats">
+			
+			<div id="blog_stats">
+<span id="stats_post_count">随笔 - 194&nbsp; </span>
+<span id="stats_article_count">文章 - 1&nbsp; </span>
+<span id="stats-comment_count">评论 - 155</span>
+</div>
+			
+		</div><!--end: blogStats -->
+	</div><!--end: navigator 博客导航栏 -->
+</div><!--end: header 头部 -->
+
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		
+        <div id="post_detail">
+<!--done-->
+<div id="topics">
+	<div class = "post">
+		<h1 class = "postTitle">
+			<a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/bakari/p/8404650.html">DPDK 全面分析</a>
+		</h1>
+		<div class="clear"></div>
+		<div class="postBody">
+			<div id="cnblogs_post_body" class="blogpost-body cnblogs-markdown"><blockquote>
+<p>本文首发于我的公众号 <strong>Linux云计算网络（id: cloud_dev）</strong>，专注于干货分享，号内有 <strong>10T</strong> 书籍和视频资源，后台回复<strong>「1024」</strong>即可领取，欢迎大家关注，二维码文末可以扫。</p>
+</blockquote>
+<h2 id="高性能网络技术">高性能网络技术</h2>
+<p>随着云计算产业的异军突起，网络技术的不断创新，越来越多的网络设备基础架构逐步向基于通用处理器平台的架构方向融合，从传统的物理网络到虚拟网络，从扁平化的网络结构到基于 SDN 分层的网络结构，无不体现出这种创新与融合。</p>
+<p>这在使得网络变得更加可控制和成本更低的同时，也能够支持大规模用户或应用程序的性能需求，以及海量数据的处理。究其原因，其实是高性能网络编程技术随着网络架构的演进不断突破的一种必然结果。</p>
+<h2 id="c10k-到-c10m-问题的演进">C10K 到 C10M 问题的演进</h2>
+<p>如今，关注的更多是 C10M 问题（即单机 1 千万个并发连接问题）。很多计算机领域的大佬们从硬件上和软件上都提出了多种解决方案。从硬件上，比如说，现在的类似很多 40Gpbs、32-cores、256G RAM 这样配置的 X86 服务器完全可以处理 1 千万个以上的并发连接。</p>
+<p>但是从硬件上解决问题就没多大意思了，首先它成本高，其次不通用，最后也没什么挑战，无非就是堆砌硬件而已。所以，抛开硬件不谈，我们看看从软件上该如何解决这个世界难题呢？</p>
+<p>这里不得不提一个人，就是 Errata Security 公司的 CEO Robert Graham，他在 Shmoocon 2013 大会上很巧妙地解释了这个问题。有兴趣可以查看其 YouTube 的演进视频： <a href="http://www.youtube.com/watch?v=73XNtI0w7jA#!">C10M Defending The Internet At Scale</a>。</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201802/431521-20180202125016203-1852422480.png" /></p>
+<p>他提到了 UNIX 的设计初衷其实为电话网络的控制系统而设计的，而不是一般的服务器操作系统，所以，它仅仅是一个数据负责数据传送的系统，没有所谓的控制层面和数据层面的说法，不适合处理大规模的网络数据包。最后他得出的结论是：</p>
+<blockquote>
+<p>OS 的内核不是解决 C10M 问题的办法，恰恰相反 OS 的内核正式导致 C10M 问题的关键所在。</p>
+</blockquote>
+<h2 id="为什么这么说基于-os-内核的数据传输有什么弊端">为什么这么说？基于 OS 内核的数据传输有什么弊端？</h2>
+<p><strong>1、中断处理。</strong>当网络中大量数据包到来时，会产生频繁的硬件中断请求，这些硬件中断可以打断之前较低优先级的软中断或者系统调用的执行过程，如果这种打断频繁的话，将会产生较高的性能开销。</p>
+<p><strong>2、内存拷贝。</strong>正常情况下，一个网络数据包从网卡到应用程序需要经过如下的过程：数据从网卡通过 DMA 等方式传到内核开辟的缓冲区，然后从内核空间拷贝到用户态空间，在 Linux 内核协议栈中，这个耗时操作甚至占到了数据包整个处理流程的 57.1%。</p>
+<p><strong>3、上下文切换。</strong>频繁到达的硬件中断和软中断都可能随时抢占系统调用的运行，这会产生大量的上下文切换开销。另外，在基于多线程的服务器设计框架中，线程间的调度也会产生频繁的上下文切换开销，同样，锁竞争的耗能也是一个非常严重的问题。</p>
+<p><strong>4、局部性失效。</strong>如今主流的处理器都是多个核心的，这意味着一个数据包的处理可能跨多个 CPU 核心，比如一个数据包可能中断在 cpu0，内核态处理在 cpu1，用户态处理在 cpu2，这样跨多个核心，容易造成 CPU 缓存失效，造成局部性失效。如果是 NUMA 架构，更会造成跨 NUMA 访问内存，性能受到很大影响。</p>
+<p><strong>5、内存管理。</strong>传统服务器内存页为 4K，为了提高内存的访问速度，避免 cache miss，可以增加 cache 中映射表的条目，但这又会影响 CPU 的检索效率。</p>
+<p>综合以上问题，可以看出内核本身就是一个非常大的瓶颈所在。那很明显解决方案就是想办法绕过内核。</p>
+<h2 id="解决方案探讨">解决方案探讨</h2>
+<p>针对以上弊端，分别提出以下技术点进行探讨。</p>
+<p><strong>1、控制层和数据层分离。</strong>将数据包处理、内存管理、处理器调度等任务转移到用户空间去完成，而内核仅仅负责部分控制指令的处理。这样就不存在上述所说的系统中断、上下文切换、系统调用、系统调度等等问题。</p>
+<p><strong>2、使用多核编程技术代替多线程技术，</strong>并设置 CPU 的亲和性，将线程和 CPU 核进行一比一绑定，减少彼此之间调度切换。</p>
+<p><strong>3、针对 NUMA 系统</strong>，尽量使 CPU 核使用所在 NUMA 节点的内存，避免跨内存访问。</p>
+<p><strong>4、使用大页内存</strong>代替普通的内存，减少 cache-miss。</p>
+<p><strong>5、采用无锁技术</strong>解决资源竞争问题。</p>
+<p>经很多前辈先驱的研究，目前业内已经出现了很多优秀的集成了上述技术方案的高性能网络数据处理框架，如 6wind、windriver、netmap、dpdk 等，其中，Intel 的 dpdk 在众多方案脱颖而出，一骑绝尘。</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201802/431521-20180202125234687-1893812869.png" /></p>
+<p>dpdk 为 Intel 处理器架构下用户空间高效的数据包处理提供了库函数和驱动的支持，它不同于 Linux 系统以通用性设计为目的，而是专注于网络应用中数据包的高性能处理。</p>
+<p>也就是 dpdk 绕过了 Linux 内核协议栈对数据包的处理过程，在用户空间实现了一套数据平面来进行数据包的收发与处理。在内核看来，dpdk 就是一个普通的用户态进程，它的编译、连接和加载方式和普通程序没有什么两样。</p>
+<blockquote>
+<p><img src="https://img2018.cnblogs.com/blog/431521/201904/431521-20190415111037844-1058636985.png" /></p>
+</blockquote>
+<h2 id="dpdk-的突破">dpdk 的突破</h2>
+<p>相对传统的基于内核的网络数据处理，dpdk 对从内核层到用户层的网络数据流程进行了重大突破，我们先看看传统的数据流程和 dpdk 中的网络流程有什么不同。</p>
+<p><strong>传统 Linux 内核网络数据流程：</strong></p>
+<pre><code>硬件中断---&gt;取包分发至内核线程---&gt;软件中断---&gt;内核线程在协议栈中处理包---&gt;处理完毕通知用户层
+用户层收包--&gt;网络层---&gt;逻辑层---&gt;业务层</code></pre>
+<p><strong>dpdk 网络数据流程：</strong></p>
+<pre><code>硬件中断---&gt;放弃中断流程
+用户层通过设备映射取包---&gt;进入用户层协议栈---&gt;逻辑层---&gt;业务层</code></pre>
+<p>下面就具体看看 dpdk 做了哪些突破？</p>
+<p><strong>UIO （用户空间的 I/O 技术）的加持。</strong></p>
+<p>dpdk 能够绕过内核协议栈，本质上是得益于 UIO 技术，通过 UIO 能够拦截中断，并重设中断回调行为，从而绕过内核协议栈后续的处理流程。</p>
+<p>UIO 设备的实现机制其实是对用户空间暴露文件接口，比如当注册一个 UIO 设备 uioX，就会出现文件 /dev/uioX，对该文件的读写就是对设备内存的读写。除此之外，对设备的控制还可以通过 /sys/class/uio 下的各个文件的读写来完成。</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201802/431521-20180202125414796-706128566.png" /></p>
+<p><strong>内存池技术</strong></p>
+<p>dpdk 在用户空间实现了一套精巧的内存池技术，内核空间和用户空间的内存交互不进行拷贝，只做控制权转移。这样，当收发数据包时，就减少了内存拷贝的开销。</p>
+<p><strong>大页内存管理</strong></p>
+<p>dpdk 实现了一组大页内存分配、使用和释放的 API，上层应用可以很方便使用 API 申请使用大页内存，同时也兼容普通的内存申请。</p>
+<p><strong>无锁环形队列</strong></p>
+<p>dpdk 基于 Linux 内核的无锁环形缓冲 kfifo 实现了自己的一套无锁机制。支持单生产者入列/单消费者出列和多生产者入列/多消费者出列操作，在数据传输的时候，降低性能的同时还能保证数据的同步。</p>
+<p><strong>poll-mode网卡驱动</strong></p>
+<p>DPDK网卡驱动完全抛弃中断模式，基于轮询方式收包，避免了中断开销。</p>
+<p><strong>NUMA </strong></p>
+<p>dpdk 内存分配上通过 proc 提供的内存信息，使 CPU 核心尽量使用靠近其所在节点的内存，避免了跨 NUMA 节点远程访问内存的性能问题。</p>
+<p><strong>CPU 亲和性</strong></p>
+<p>dpdk 利用 CPU 的亲和性将一个线程或多个线程绑定到一个或多个 CPU 上，这样在线程执行过程中，就不会被随意调度，一方面减少了线程间的频繁切换带来的开销，另一方面避免了 CPU 缓存的局部失效性，增加了 CPU 缓存的命中率。</p>
+<p><strong>多核调度框架</strong></p>
+<p>dpdk 基于多核架构，一般会有主从核之分，主核负责完成各个模块的初始化，从核负责具体的业务处理。</p>
+<p>除了上述之外，dpdk 还有很多的技术突破，可以用下面这张图来概之。</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201802/431521-20180202125548812-1308226741.png" /></p>
+<h2 id="dpdk-的应用">dpdk 的应用</h2>
+<p>dpdk 作为优秀的用户空间高性能数据包加速套件，现在已经作为一个“胶水”模块被用在多个网络数据处理方案中，用来提高性能。如下是众多的应用。</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201802/431521-20180202125607359-287540014.png" /></p>
+<h3 id="数据面虚拟交换机">数据面（虚拟交换机）：</h3>
+<p><strong>OVS</strong></p>
+<p>Open vSwitch 是一个多核虚拟交换机平台，支持标准的管理接口和开放可扩展的可编程接口，支持第三方的控制接入。</p>
+<p><a href="https://github.com/openvswitch/ovs" class="uri">https://github.com/openvswitch/ovs</a></p>
+<p><strong>VPP</strong></p>
+<p>VPP 是 cisco 开源的一个高性能的包处理框架，提供了 交换/路由 功能，在虚拟化环境中，使它可以当做一个虚拟交换机来使用。在一个类 SDN 的处理框架中，它往往充当数据面的角色。经研究表明，VPP 性能要好于 ovs+dpdk 的组合，但它更适用于NFV，适合做特定功能的网络模块。</p>
+<p><a href="https://wiki.fd.io/view/VPP" class="uri">https://wiki.fd.io/view/VPP</a></p>
+<p><strong>Lagopus</strong></p>
+<p>Lagopus 是另一个多核虚拟交换的实现，功能和 OVS 差不多，支持多种网络协议，如 Ethernet，VLAN，QinQ，MAC-in-MAC，MPLS 和 PBB，以及隧道协议，如 GRE，VxLan 和 GTP。</p>
+<p><a href="https://github.com/lagopus/lagopus/blob/master/QUICKSTART.md" class="uri">https://github.com/lagopus/lagopus/blob/master/QUICKSTART.md</a></p>
+<p><strong>Snabb</strong></p>
+<p>Snabb 是一个简单且快速的数据包处理工具箱。</p>
+<p><a href="https://github.com/SnabbCo/snabbswitch/blob/master/README.md" class="uri">https://github.com/SnabbCo/snabbswitch/blob/master/README.md</a></p>
+<h3 id="数据面虚拟路由器">数据面（虚拟路由器）：</h3>
+<p><strong>OPENCONTRAIL</strong></p>
+<p>一个集成了 SDN 控制器的虚拟路由器，现在多用在 OpenStack 中，结合 Neutron 为 OpenStack 提供一站式的网络支持。</p>
+<p><a href="http://www.opencontrail.org/" class="uri">http://www.opencontrail.org/</a></p>
+<p><strong>CloudRouter</strong></p>
+<p>一个分布式的路由器。</p>
+<p><a href="https://cloudrouter.org/" class="uri">https://cloudrouter.org/</a></p>
+<h3 id="用户空间协议栈">用户空间协议栈</h3>
+<p><strong>mTCP</strong></p>
+<p>mTCP 是一个针对多核系统的高可扩展性的用户空间 TCP/IP 协议栈。</p>
+<p><a href="https://github.com/eunyoung14/mtcp/blob/master/README" class="uri">https://github.com/eunyoung14/mtcp/blob/master/README</a></p>
+<p><strong>IwIP</strong></p>
+<p>IwIP 针对 RAM 平台的精简版的 TCP/IP 协议栈实现。</p>
+<p><a href="http://git.savannah.gnu.org/cgit/lwip.git/tree/README" class="uri">http://git.savannah.gnu.org/cgit/lwip.git/tree/README</a></p>
+<p><strong>Seastar</strong></p>
+<p>Seastar 是一个开源的，基于 C++ 11/14 feature，支持高并发和低延迟的异步编程高性能库。</p>
+<p><a href="http://www.seastar-project.org/" class="uri">http://www.seastar-project.org/</a></p>
+<p><strong>f-stack</strong></p>
+<p>腾讯开源的用户空间协议栈，移植于 FreeBSD协议栈，粘合了 POSIX API，上层应用（协程框架，Nginx,Redis），纯 C 编写，易上手。</p>
+<p><a href="https://github.com/f-stack/f-stack" class="uri">https://github.com/f-stack/f-stack</a></p>
+<h2 id="总结">总结</h2>
+<p>dpdk 绕过了 Linux 内核协议栈，加速数据的处理，用户可以在用户空间定制协议栈，满足自己的应用需求，目前出现了很多基于 dpdk 的高性能网络框架，OVS 和 VPP 是常用的数据面框架，mTCP 和 f-stack 是常用的用户态协议栈。很多大公司都在使用 dpdk 来优化网络性能。</p>
+<hr />
+<blockquote>
+<p>我的公众号 <strong>「Linux云计算网络」(id: cloud_dev)</strong> ，号内有 <strong>10T</strong> 书籍和视频资源，后台回复 <strong>「1024」</strong> 即可领取，分享的内容包括但不限于 Linux、网络、云计算虚拟化、容器Docker、OpenStack、Kubernetes、工具、SDN、OVS、DPDK、Go、Python、C/C++编程技术等内容，欢迎大家关注。</p>
+</blockquote>
+<blockquote>
+<p><img src="https://img2018.cnblogs.com/blog/431521/201904/431521-20190415111037844-1058636985.png" /></p>
+</blockquote>
+</div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory"></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info">
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"></div>
+</div>
+
+
+		</div>
+		<div class = "postDesc">posted @ <span id="post-date">2018-02-02 13:01</span> <a href='https://www.cnblogs.com/bakari/'>ctimbai</a> 阅读(<span id="post_view_count">...</span>) 评论(<span id="post_comment_count">...</span>)  <a href ="https://i.cnblogs.com/EditPosts.aspx?postid=8404650" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(8404650);return false;">收藏</a></div>
+	</div>
+	<script src="//common.cnblogs.com/highlight/9.12.0/highlight.min.js"></script><script>markdown_highlight();</script><script type="text/javascript">var allowComments=true,cb_blogId=124300,cb_entryId=8404650,cb_blogApp=currentBlogApp,cb_blogUserGuid='0bb9f45d-f5d6-e111-aa3f-842b2b196315',cb_entryCreatedDate='2018/2/2 13:01:00';loadViewCount(cb_entryId);var cb_postType=1;var isMarkdown=true;</script>
+	
+</div><!--end: topics 文章、评论容器-->
+</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id='comment_form' class='commentform'>
+<a name='commentform'></a>
+<div id='divCommentShow'></div>
+<div id='comment_nav'><span id='span_refresh_tips'></span><a href='javascript:void(0);' onclick='return RefreshCommentList();' id='lnk_RefreshComments' runat='server' clientidmode='Static'>刷新评论</a><a href='#' onclick='return RefreshPage();'>刷新页面</a><a href='#top'>返回顶部</a></div>
+<div id='comment_form_container'></div>
+<div class='ad_text_commentbox' id='ad_text_under_commentbox'></div>
+<div id='ad_t2'></div>
+<div id='opt_under_post'></div>
+<script async='async' src='https://www.googletagservices.com/tag/js/gpt.js'></script>
+<script>
+  var googletag = googletag || {};
+  googletag.cmd = googletag.cmd || [];
+</script>
+<script>
+  googletag.cmd.push(function() {
+        googletag.defineSlot('/1090369/C1', [300, 250], 'div-gpt-ad-1546353474406-0').addService(googletag.pubads());
+        googletag.defineSlot('/1090369/C2', [468, 60], 'div-gpt-ad-1539008685004-0').addService(googletag.pubads());
+        googletag.pubads().enableSingleRequest();
+        googletag.enableServices();
+  });
+</script>
+<div id='cnblogs_c1' class='c_ad_block'>
+    <div id='div-gpt-ad-1546353474406-0' style='height:250px; width:300px;'></div>
+</div>
+<div id='under_post_news'></div>
+<div id='cnblogs_c2' class='c_ad_block'>
+    <div id='div-gpt-ad-1539008685004-0' style='height:60px; width:468px;'></div>
+</div>
+<div id='under_post_kb'></div>
+<div id='HistoryToday' class='c_ad_block'></div>
+<script type='text/javascript'>
+ if(enablePostBottom()) {
+    codeHighlight();
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverT2();
+    deliverC1();
+    deliverC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);  
+}
+</script>
+</div>
+
+    
+	</div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+
+	<div id="sideBar">
+		<div id="sideBarMain">
+			
+<!--done-->
+<div class="newsItem">
+<h3 class="catListTitle">公告</h3>
+	<div id="blog-news"></div><script type="text/javascript">loadBlogNews();</script>
+</div>
+
+			<div id="blog-calendar" style="display:none"></div><script type="text/javascript">loadBlogDefaultCalendar();</script>
+			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn"></div><script type="text/javascript">loadBlogSideColumn();</script>
+			</div>
+			
+		</div><!--end: sideBarMain -->
+	</div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<div id="footer">
+		
+<!--done-->
+Copyright &copy;2019 长亭ctim
+	</div><!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+
+</body>
+</html>

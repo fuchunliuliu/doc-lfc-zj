@@ -1,0 +1,44 @@
+单独编译替换VIRTIO_PCI
+进入virtio代码目录
+cd /home/liufeng/workspace/linux/drivers/virtio
+
+开始编译
+make -C /lib/modules/`uname -r`/build M=`pwd` clean
+make -C /lib/modules/`uname -r`/build M=`pwd` modules
+
+拷贝编译结果出来，并使用
+
+cp *.ko /home/liufeng/tools/modules/
+cd /home/liufeng/tools/modules/
+
+modprobe -r virtio_pci
+modprobe -r virtio_net 
+
+modprobe virtio_ring
+modprobe virtio
+insmod virtio_pci.ko
+insmod virtio_net.ko
+
+单独编译替换VIRTIO_INET
+
+进入virtio_inet代码目录
+
+cd /home/liufeng/workspace/linux/drivers/net
+
+开始编译
+make -C /lib/modules/`uname -r`/build M=`pwd` clean
+make -C /lib/modules/`uname -r`/build M=`pwd` modules
+
+
+拷贝编译结果出来，并使用
+
+cp *.ko /home/liufeng/tools/modules/
+cd /home/liufeng/tools/modules/
+
+
+modprobe -r virtio_net 
+
+insmod  virtio_net.ko
+
+--------------------- 
+原文：https://blog.csdn.net/leoufung/article/details/53164052 

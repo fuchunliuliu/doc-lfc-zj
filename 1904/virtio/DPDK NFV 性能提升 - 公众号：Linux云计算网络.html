@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="origin" />
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <title>DPDK  NFV 性能提升 - 长亭ctim - 博客园</title>
+    <meta property="og:description" content="本文首发于我的公众号 Linux云计算网络（id: cloud_dev） ，专注于干货分享，号内有 10T 书籍和视频资源，后台回复 「1024」 即可领取，欢迎大家关注，二维码文末可以扫。 本文是一" />
+    <link type="text/css" rel="stylesheet" href="/bundles/blog-common.css?v=KOZafwuaDasEedEenI5aTy8aXH0epbm6VUJ0v3vsT_Q1"/>
+<link id="MainCss" type="text/css" rel="stylesheet" href="/skins/Custom/bundle-Custom.css?v=Z683z9azGWin6jOfOyAHK6FgPVxm_nmCnl3EFztc2eE1"/>
+<link type="text/css" rel="stylesheet" href="/blog/customcss/124300.css?v=JhwZO1D1adarLhU1VVmMFze%2fyXk%3d"/>
+<link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="/skins/Custom/bundle-Custom-mobile.css?v=_msYCBCTPwxsehifP8ZdBI6kxamcIjzp-IKwPnrrPeg1"/>
+    <link title="RSS" type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/bakari/rss"/>
+    <link title="RSD" type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/bakari/rsd.xml"/>
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/bakari/wlwmanifest.xml"/>
+    <script src="//common.cnblogs.com/scripts/jquery-2.2.0.min.js"></script>
+    <script>var currentBlogId=124300;var currentBlogApp='bakari',cb_enable_mathjax=true;var isLogined=true;</script>
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']], processClass: 'math', processEscapes: true },
+        TeX: { 
+            equationNumbers: { autoNumber: ['AMS'], useLabelIds: true }, 
+            extensions: ['extpfeil.js'],
+            Macros: {bm: "\\boldsymbol"}
+        },
+        'HTML-CSS': { linebreaks: { automatic: true } },
+        SVG: { linebreaks: { automatic: true } }
+        });
+    </script><script src="//mathjax.cnblogs.com/2_7_2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script src="/bundles/blog-common.js?v=smtcUT5dhdu_5eEO8CKHYoVc7DPLgEBGzp6zKkstlzg1" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+
+<!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+	<a id="lnkBlogLogo" href="https://www.cnblogs.com/bakari/"><img id="blogLogo" src="/Skins/custom/images/logo.gif" alt="返回主页" /></a>			
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="https://www.cnblogs.com/bakari/">公众号：Linux云计算网络</a></h1>
+<h2>专注 Linux、网络、云计算技术栈，欢迎关注我的微信公众号「Linux云计算网络」</h2>
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+	<div id="navigator">
+		
+<ul id="navList">
+<li><a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/">博客园</a></li>
+<li><a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/bakari/">首页</a></li>
+<li><a id="blog_nav_newpost" class="menu" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+<li><a id="blog_nav_contact" class="menu" rel="nofollow" href="https://msg.cnblogs.com/send/%E9%95%BF%E4%BA%ADctim">联系</a></li>
+<li><a id="blog_nav_rss" class="menu" href="https://www.cnblogs.com/bakari/rss">订阅</a>
+<!--<a id="blog_nav_rss_image" class="aHeaderXML" href="https://www.cnblogs.com/bakari/rss"><img src="//www.cnblogs.com/images/xml.gif" alt="订阅" /></a>--></li>
+<li><a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+</ul>
+		<div class="blogStats">
+			
+			<div id="blog_stats">
+<span id="stats_post_count">随笔 - 194&nbsp; </span>
+<span id="stats_article_count">文章 - 1&nbsp; </span>
+<span id="stats-comment_count">评论 - 155</span>
+</div>
+			
+		</div><!--end: blogStats -->
+	</div><!--end: navigator 博客导航栏 -->
+</div><!--end: header 头部 -->
+
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		
+        <div id="post_detail">
+<!--done-->
+<div id="topics">
+	<div class = "post">
+		<h1 class = "postTitle">
+			<a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/bakari/p/8324492.html">DPDK  NFV 性能提升</a>
+		</h1>
+		<div class="clear"></div>
+		<div class="postBody">
+			<div id="cnblogs_post_body" class="blogpost-body cnblogs-markdown"><blockquote>
+<p>本文首发于我的公众号 <strong>Linux云计算网络（id: cloud_dev）</strong>，专注于干货分享，号内有 <strong>10T</strong> 书籍和视频资源，后台回复<strong>「1024」</strong>即可领取，欢迎大家关注，二维码文末可以扫。</p>
+</blockquote>
+<blockquote>
+<p>本文是一篇翻译，翻译自https://software.intel.com/en-us/blogs/2015/06/12/user-space-networking-fuels-nfv-performance，文章有点老了，15年写的，但是文章总结了一些用户态的协议栈，很有学习参考的意义。</p>
+</blockquote>
+<p>如今，作为一个网络空间的软件开发人员是非常激动人心的，因为工程师的角色随着这个世界的规则在逐渐改变。</p>
+<p>过去这 15 年来，人们对高性能网络做了很多努力，网络模型也发生了很多改变，起初，数据包的收发都要推送到内核才能完成，现在，不用内核态的参与也可以完成。这种改变的背后是在力图解决以下的几个问题：1）用户态和内核态上下文切换的开销；2）软硬中断的开销；3）数据拷贝的开销等等。</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201801/431521-20180121155502318-680987788.png" /></p>
+<p>最近，很多人在讨论 mTCP——一个实现了用户态协议栈的开源库，这种技术在很大程度上就颠覆了传统的网络模型，使得网络收发包的效率大大提升。它充分利用了 CPU 的亲和性，共享内存，批处理等技术来实现高效的 I/O 事件。与之类似的技术也相继被提出。</p>
+<p>实验表明，mTCP 这种用户态协议栈，相较原生的内核协议栈，在处理多种流行的应用时的性能得到较大提升，如 SSLShader 提升了 33%，lighttpd 提升了 320%。</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201801/431521-20180121155519990-2107124188.png" /></p>
+<p>软件形态的改变离不开硬件的革新。由以前的单核系统到如今多核系统的性能扩展，直接导致了网络软件架构的新方法。例如，内核所做的所有功能和处理，包括网络驱动程序，现在都可以被直接放到用户空间中来实现，应用程序可以直接访问底层的 NUMA 结构，利用 CPU 的亲和性，以及多核特性并行处理任务。这种设计避免了上下文之间的切换开销，可以显著降低数据传输的延迟和 CPU 使用，同时提高吞吐量和带宽。另外，提供一种运行到完成（run-to-completion）的模型能够让不同的核独立并行地完成不同的任务。</p>
+<p>随着网络的发展，我们现在看到了大量的开源项目，都在将内核协议栈移到用户空间来做。它们的做法存在一些区别，像 mTCP，它的协议栈是从零开始开发的，而其他很多项目则是基于 FreeBSD 的来做，这主要是因为 FreeBSD 的协议栈具有 “最健壮的网络协议栈的声誉”。此外，很多存储解决方案也是采用的 FreeBSD 来作为其核心操作系统。当然，Linux 协议栈也是可以采用的。</p>
+<p>这些用户态协议栈怎么做到绕过内核的，这就离不开 DPDK 的支持。利用 DPDK，用户态协议栈可以创建一个中断来将数据包从 NIC 的缓冲区直接映射到用户空间，然后利用协议栈的特性来管理 TCP/IP 数据包的处理和传输。</p>
+<p>DPDK 还可以作为一些 vSwitch（虚拟交换机）的加速器，这些 vSwitch 包含 OpenFlow 协议的完整实现，以及与 OpenStack Neutron 的整合。</p>
+<p>下面，我们收集了一些发现的开源项目，无论你决定使用一个 vSwitch 还是一个完整的网络协议栈，网络开发人员都有很多选择，可以将应用程序移到用户空间，并在多核系统上扩展性能。</p>
+<hr />
+<h3 id="dpdk-enabled-vswitch">DPDK-Enabled vSwitch：</h3>
+<p><strong>OVS</strong><br />
+Open vSwitch 是一个多核虚拟交换机平台，支持标准的管理接口和开放可扩展的可编程接口，支持第三方的控制接入。<br />
+<a href="https://github.com/openvswitch/ovs" class="uri">https://github.com/openvswitch/ovs</a></p>
+<p><strong>Lagopus</strong><br />
+Lagopus 是另一个多核虚拟交换的实现，功能和 OVS 差不多，支持多种网络协议，如 Ethernet，VLAN，QinQ，MAC-in-MAC，MPLS 和 PBB，以及隧道协议，如 GRE，VxLan 和 GTP。<br />
+<a href="https://github.com/lagopus/lagopus/blob/master/QUICKSTART.md" class="uri">https://github.com/lagopus/lagopus/blob/master/QUICKSTART.md</a></p>
+<p><strong>Snabb</strong><br />
+Snabb 是一个简单且快速的数据包处理工具箱。<br />
+<a href="https://github.com/SnabbCo/snabbswitch/blob/master/README.md" class="uri">https://github.com/SnabbCo/snabbswitch/blob/master/README.md</a></p>
+<p><strong>xDPd</strong><br />
+xDPd 是一个多平台，多 OpenFlow 版本支持的开源 datapath，主要专注在性能和可扩展性上。<br />
+<a href="https://github.com/bisdn/xdpd/blob/stable/README" class="uri">https://github.com/bisdn/xdpd/blob/stable/README</a></p>
+<h3 id="从零开发的用户空间协议栈套件">从零开发的用户空间协议栈套件：</h3>
+<p><strong>mTCP</strong><br />
+mTCP 是一个针对多核系统的高可扩展性的用户空间 TCP/IP 协议栈。<br />
+<a href="https://github.com/eunyoung14/mtcp/blob/master/README" class="uri">https://github.com/eunyoung14/mtcp/blob/master/README</a></p>
+<p><strong>Mirage-Tcpip</strong><br />
+mirage-tcpip 是一个针对 MirageOS 这种 “库操作系统” 而开发的一个用户态网络协议栈，开发的语言是 OCaml。<br />
+<a href="https://github.com/mirage/mirage-tcpip" class="uri">https://github.com/mirage/mirage-tcpip</a></p>
+<p><strong>IwIP</strong><br />
+IwIP 针对 RAM 平台的精简版的 TCP/IP 协议栈实现。<br />
+<a href="http://git.savannah.gnu.org/cgit/lwip.git/tree/README" class="uri">http://git.savannah.gnu.org/cgit/lwip.git/tree/README</a></p>
+<h3 id="移植版的用户空间协议栈套件">移植版的用户空间协议栈套件：</h3>
+<p><strong>Arrakis</strong><br />
+针对多核系统的用户空间 OS，移植于 IwIP。<br />
+<a href="https://github.com/UWNetworksLab/arrakis/blob/master/README_ARRAKIS" class="uri">https://github.com/UWNetworksLab/arrakis/blob/master/README_ARRAKIS</a></p>
+<p><strong>libuinet</strong><br />
+用户空间的 TCP/IP 协议栈，移植于 FreeBSD。<br />
+<a href="https://github.com/pkelsey/libuinet/blob/master/README" class="uri">https://github.com/pkelsey/libuinet/blob/master/README</a></p>
+<p><strong>NUSE (libos)</strong><br />
+一个基于 Linux 的库操作系统，移植于 Linux。<br />
+<a href="https://github.com/libos-nuse/net-next-nuse/wiki/Quick-Start" class="uri">https://github.com/libos-nuse/net-next-nuse/wiki/Quick-Start</a></p>
+<p><strong>OpenDP</strong><br />
+一个针对 DPDK TCP/IP 协议栈的数据面，移植于 FreeBSD。<br />
+<a href="https://github.com/opendp/dpdk-odp/wiki" class="uri">https://github.com/opendp/dpdk-odp/wiki</a></p>
+<p><strong>OpenOnload</strong><br />
+一个高性能的用户态协议栈，移植于 IwIP。<br />
+<a href="http://www.openonload.org/download/openonload-201205-README.txt" class="uri">http://www.openonload.org/download/openonload-201205-README.txt</a></p>
+<p><strong>OSv</strong><br />
+一个针对虚拟机的开源操作系统。移植于 FreeBSD。<br />
+<a href="https://github.com/cloudius-systems/osv/blob/master/README.md" class="uri">https://github.com/cloudius-systems/osv/blob/master/README.md</a></p>
+<p><strong>Sandstorm</strong><br />
+一个针对个人服务器安全的开源网络平台，移植于 FreeBSD。<br />
+<a href="https://github.com/sandstorm-io/sandstorm/blob/master/README.md" class="uri">https://github.com/sandstorm-io/sandstorm/blob/master/README.md</a></p>
+<h2 id="总结">总结：</h2>
+<p>1、这篇文字的亮点在于总结了当前阶段业界出现的一些用户空间协议栈，对于文章标题提到的 NFV 在文中则只字未提，但其实意思也很明了了。用户空间的协议栈是随着硬件技术的发展，以及新鲜应用场景应运而生的，换句话说，对于像 NFV 这种对性能要求比较高的场景，采用用户态的协议栈是比较合适的。</p>
+<p>2、文中是 2015 年写的，这意味着到现在为止，肯定出现了很多比上面总结还要多的方案，其中比较出名的有 SeaStar 和 腾讯开源的 F-Stack，后面找机会再进行详述，敬请期待吧。</p>
+<hr />
+<blockquote>
+<p>我的公众号 <strong>「Linux云计算网络」(id: cloud_dev)</strong> ，号内有 <strong>10T</strong> 书籍和视频资源，后台回复 <strong>「1024」</strong> 即可领取，分享的内容包括但不限于 Linux、网络、云计算虚拟化、容器Docker、OpenStack、Kubernetes、工具、SDN、OVS、DPDK、Go、Python、C/C++编程技术等内容，欢迎大家关注。</p>
+</blockquote>
+<blockquote>
+<p><img src="https://img2018.cnblogs.com/blog/431521/201904/431521-20190415111037844-1058636985.png" /></p>
+</blockquote>
+</div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory"></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info">
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"></div>
+</div>
+
+
+		</div>
+		<div class = "postDesc">posted @ <span id="post-date">2018-01-21 17:24</span> <a href='https://www.cnblogs.com/bakari/'>ctimbai</a> 阅读(<span id="post_view_count">...</span>) 评论(<span id="post_comment_count">...</span>)  <a href ="https://i.cnblogs.com/EditPosts.aspx?postid=8324492" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(8324492);return false;">收藏</a></div>
+	</div>
+	<script src="//common.cnblogs.com/highlight/9.12.0/highlight.min.js"></script><script>markdown_highlight();</script><script type="text/javascript">var allowComments=true,cb_blogId=124300,cb_entryId=8324492,cb_blogApp=currentBlogApp,cb_blogUserGuid='0bb9f45d-f5d6-e111-aa3f-842b2b196315',cb_entryCreatedDate='2018/1/21 17:24:00';loadViewCount(cb_entryId);var cb_postType=1;var isMarkdown=true;</script>
+	
+</div><!--end: topics 文章、评论容器-->
+</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id='comment_form' class='commentform'>
+<a name='commentform'></a>
+<div id='divCommentShow'></div>
+<div id='comment_nav'><span id='span_refresh_tips'></span><a href='javascript:void(0);' onclick='return RefreshCommentList();' id='lnk_RefreshComments' runat='server' clientidmode='Static'>刷新评论</a><a href='#' onclick='return RefreshPage();'>刷新页面</a><a href='#top'>返回顶部</a></div>
+<div id='comment_form_container'></div>
+<div class='ad_text_commentbox' id='ad_text_under_commentbox'></div>
+<div id='ad_t2'></div>
+<div id='opt_under_post'></div>
+<script async='async' src='https://www.googletagservices.com/tag/js/gpt.js'></script>
+<script>
+  var googletag = googletag || {};
+  googletag.cmd = googletag.cmd || [];
+</script>
+<script>
+  googletag.cmd.push(function() {
+        googletag.defineSlot('/1090369/C1', [300, 250], 'div-gpt-ad-1546353474406-0').addService(googletag.pubads());
+        googletag.defineSlot('/1090369/C2', [468, 60], 'div-gpt-ad-1539008685004-0').addService(googletag.pubads());
+        googletag.pubads().enableSingleRequest();
+        googletag.enableServices();
+  });
+</script>
+<div id='cnblogs_c1' class='c_ad_block'>
+    <div id='div-gpt-ad-1546353474406-0' style='height:250px; width:300px;'></div>
+</div>
+<div id='under_post_news'></div>
+<div id='cnblogs_c2' class='c_ad_block'>
+    <div id='div-gpt-ad-1539008685004-0' style='height:60px; width:468px;'></div>
+</div>
+<div id='under_post_kb'></div>
+<div id='HistoryToday' class='c_ad_block'></div>
+<script type='text/javascript'>
+ if(enablePostBottom()) {
+    codeHighlight();
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverT2();
+    deliverC1();
+    deliverC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);  
+}
+</script>
+</div>
+
+    
+	</div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+
+	<div id="sideBar">
+		<div id="sideBarMain">
+			
+<!--done-->
+<div class="newsItem">
+<h3 class="catListTitle">公告</h3>
+	<div id="blog-news"></div><script type="text/javascript">loadBlogNews();</script>
+</div>
+
+			<div id="blog-calendar" style="display:none"></div><script type="text/javascript">loadBlogDefaultCalendar();</script>
+			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn"></div><script type="text/javascript">loadBlogSideColumn();</script>
+			</div>
+			
+		</div><!--end: sideBarMain -->
+	</div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<div id="footer">
+		
+<!--done-->
+Copyright &copy;2019 长亭ctim
+	</div><!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+
+</body>
+</html>

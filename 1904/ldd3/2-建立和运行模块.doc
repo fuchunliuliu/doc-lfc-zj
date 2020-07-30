@@ -1,0 +1,207 @@
+﻿LDD3学习笔记（2）：建立和运行模块
+1、建立开发环境
+在开始编写代码以及研究代码之前，你需要有一个开发环境，也就是一个linux系统。通常我们的做法是在windows下安装一个虚拟机软件，然后在虚拟机软件中安装一个linux系统的发行版本，在众多的发行版本中我推荐ubuntu，不过具体还要看个人爱好。
+2、hello world模块
+许多编程书籍都从hello world开始，下面的代码是一个完整的hello world模块。将下列代码输入hello.c文件中。
+#include <linux/init.h>
+#include <linux/module.h>
+MODULE_LICENSE("Dual BSD/GPL");
+static int hello_init(void)
+{
+        printk(KERN_ALERT "Hello, world\n");
+        return 0;
+}
+static void hello_exit(void)
+{
+        printk(KERN_ALERT "Goodbye, cruel world\n");
+}
+module_init(hello_init);
+module_exit(hello_exit);
+这个模块定义了两个函数，一个在模块加载到内核时被调用（hello_init）以及一个在模块被移除的时候被调用（hello_exit）。moudle_init和modle_exit这几行使用了特别的内核宏来指出这两个函数的角色，另一个特别的宏(MODULE_LICENSE)是用来告知内核，该模块带有一个自由的许可证，没有这样的说明，在模块加载时内核会抱怨（程序员的幽默）。
+printk函数在linux内核中定义并且对模块可用，模块能够调用printk是因为，在insmod加载了它之后，模块被连接到内核并且可存取内核的公用符号（函数和变量），字符串KERN_ALERT是消息的优先级。
+ 
+编写Makefile文件：
+ifeq ($(KERNELRELEASE),)
+#KERNELDIR为内核所在路径，其中uname -r 是输出内核版本信息。
+KERNELDIR ?=/lib/modules/$(shell uname -r)/build
+PWD :=$(shell pwd)
+ 
+modules:
+$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
+modules_install:
+$(MAKE) -C $(KERNELDIR) M=$(PWD) modules_install
+ 
+clean:
+rm -rf *.o *~ core .depend .*.cmd *.mod.c .tmp_versions
+.PHONY: modules modules_install clean
+ 
+else
+obj-m := hello.o
+endif
+ 
+编写完makefile文件后就可以执行：make
+如果没有错误的话，在你的目录下回生成有hello.ko文件，这个文件就是hello模块最终生成的可加载文件。
+在ubuntu下执行命令：insmod hello.ko
+你会发现没有任何输出，怎么回事？不是应该输出一句话的吗？
+别急，这是因为你是在模拟终端执行的，所以不会直接显示消息。中文版书中原文引用：“依据你的系统用来递交消息行的机制, 你的输出可能不同. 特别地, 前面的屏幕输出是来自一个字
+符控制台; 如果你从一个终端模拟器或者在窗口系统中运行 insmod 和 rmmod, 你不会在你的屏幕
+上看到任何东西. 消息进入了其中一个系统日志文件中, 例如 /var/log/messages (实际文件名子随
+Linux 发布而变化)”。在ubuntu中输出的消息进入到了/var/log/syslog文件里面，你可以使用命令：cat /var/log/syslog
+进行查看。为什么会这样那？因为printk函数输出消息的优先级问题，有兴趣的朋友可以做下研究，前面对printk函数也已经做了简单介绍，这里就不再深究。可能朋友们还有一点疑惑，这里再给出一个方法：如果你是ubuntu操作系统，如果你是在windows下的虚拟机软件中安装，你可以使用ctrl+alt+space +F1进入纯文本行模式下，再执行：insmod hello.ko将会如愿以偿的看到输出，想要再回到图形界面可以使用ctrl+alt+space+F7。
+3、内核模块同普通应用程序的区别
+每个内核模块只注册自己以便服务将来的请求，其初始化函数的任务是为以后调用模块的函数做准备，就好像是模块对内核说“我在这里，这是我能做的”，模块的退出函数是在模块被卸载时调用，就好像告诉内核“我不在了，以后别让我做任何事情了”。
+一个应用程序可以调用它没有定义的函数：在连接阶段使用合适的函数库解决了外部引用，例如printf函数，这个函数可以在程序的任何地方调用，因为它在libc里面有定义，在编译连接的时候会自动在libc中找到它的定义。但是一个模块却不能这样，模块只能连接到内核，它能够调用的唯一的函数就是内核输出的那个，它没有库可以连接。只有内核的函数才可以在内核模块中使用，内核相关的任何东西都在头文件里声明，大部分相关的头文件位于include/linux和include/asm中。
+3.1、用户空间和内核空间
+一个模块在内核空间运行，而应用程序在用户空间运行，这个概念是操作系统理论的基础。操作系统承担着程序运行的独立操作和保护对于非授权的资源存取，而这样的任务必须有CPU的支持才可能实现。当今的处理器都支持这种行为，支持的方法是CPU自己实现不同的操作形态（或者级别），这些级别有不同的角色，在linux下，内核在最高级别运行（也称之为超级模式），在这种模式下任何事情都允许，而应用程序在最低级别运行，在这种模式下处理器控制了对硬件的直接存取以及对内存的非法存取。每种模式都有它自己的内存映射即自己的地址空间。
+模块的角色是扩展内核的功能，模块化的代码在内核空间运行。
+3.2、内核的并发
+内核编程区别于传统的应用程序编程是并发问题，普通的应用程序都是顺序执行，从头到尾，不必担心其他事情发生而改变运行环境，内核代码不是这样，即使是嘴简单的内核模块都必须在并发的概念下编写。
+并发的来源：在系统运行中，同一时间可能不止一个进程试图使用你的驱动，大部分设备都能够终端处理器。
+对linux内核代码，包括驱动代码必须是可重入的，即必须能够同时在多个上下文中运行。
+3.3、当前进程
+内核所作的动作大部分是代表一个特定进程，即当前进程。
+3.4、必知必会
+应用程序存在于虚拟内存中，有一个非常大的堆栈区，堆栈用来保存函数调用记录以及所有当前活跃的函数创建的自动变量。内核只有一个非常小的堆栈，你的函数必须与内核共享这个堆栈，因此对于大的自动变量可以在调用时动态分配。
+当你查看内核API时，你会遇到以双下划线（__）开始的函数名，这样标志的函数名通常是一个低层的接口组件，应当小心使用。
+内核代码不能做浮点算术。
+4、编译和加载
+$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
+这是通用Makefile文件中的一条命令，这条命令在模块的Makefile中起有很重要的作用，命令开始时改变它的目录到-C选项提供的目录下（即内核源码目录），在那里会发现内核的顶层makefile，M=选项使makefile在试图建立模块目标前，回到你的模块源码目录，依次在obj-m变量中发现模块列表。
+通用的模块makefile文件格式：
+# If KERNELRELEASE is defined, we've been invoked from the
+# kernel build system and can use its language.
+ifneq ($(KERNELRELEASE),)
+obj-m := hello.o
+# Otherwise we were called directly from the command
+# line; invoke the kernel build system.
+else
+KERNELDIR ?= /lib/modules/$(shell uname -r)/build
+PWD := $(shell pwd)
+default:
+$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
+endif
+4.1、加载和卸载模块
+加载模块使用：insmod hello.ko命令，卸载模块使用：rmmod hello.ko命令
+lsmod命令查看当前内核中已经加载的模块列表。
+4.2、版本依赖
+模块使用的接口可能一内核版本和另一个内核版本有很大的差别，所以对于不用的内核版本需要编译多次。
+5、预备知识
+大部分内核代码包含了许多数量的头文件来获得函数，数据结构和变量的定义，有几个文件对模块来说很特殊，在每一个可加载模块中，都必须包含以下文件：
+#include<linux/module.h>
+#include<linux/init.h>
+moudle.h包含了大量加载模块需要的函数和符号的定义，你需要init.h来制定你的初始化和清理函数。另外大部分模块还需要包含moudleparam.h，使得可以在模块加载时传递参数给模块。
+另外你的模块最好指定代码使用哪个许可，只需要一行代码：
+MODULE_LICENSE("代码的许可标志");
+6、初始化和关停
+模块初始化函数:
+static int __init init_fun_name(void)
+{
+初始化代码
+}
+module_init(init_fun_name);
+初始化函数应当声明为静态的，因为他们不会在特定文件之外可见。__init标志是给内核的暗示，说明指定函数只是在初始化使用，模块加载者在模块加载后会丢掉这个初始化函数，使它的的内存可做其他用途，一个类似的标签__initdata给只在初始化时使用的数据，对于那些在初始化完后不会再使用的函数或者数据可以使用这样的标签。另外在内核源码中还会有的标签__devinit和__devinitdata，这些标签会在在内核没有配置支持hotplug设备时转换成__init和__initdata。
+使用moudle_init是强制的，这个宏定义增加了特别的段到模块目标代码中，表明在哪里找到模块的初始化函数，没有这个定义，你的初始化函数不会被调用。
+6.1、清理函数
+每个非实验性的模块也要求有一个清理函数，它注销接口，在模块被去除之前返回所有资源给系统，这个函数定义为：
+static void __exit cleanup_function(void)
+{
+清理代码
+}
+module_exit(cleanup_function);
+清理函数没有返回值，因此它被声明为void类型，__exit修饰符标识这个代码只用于模块卸载，再一次，moudle_exit声明对于使得内核能够找到你的清理函数是必须的。
+如果你的模块没有定义一个清理函数，内核不会允许它被卸载。
+6.2、初始化中的错误处理
+错误恢复使用goto语句处理时最好的，使用goto可以去掉大量的复杂工作，在内核里goto是处理错误经常用到的。
+清理函数当由非退出代码调用时不能标志为__exit。
+7、模块参数
+模块参数可由insmod或则modprobe在加载时指定：例如
+insmod hello howmany=10 whom="Mom"
+如果以这种方式加载，hello会说“hello,Mom“10次
+但是在insmod修改模块参数前，模块必须使它们可用，参数用moudle_param宏定义来声明
+它定义在moduleparam.h，module_param使用了3个参数：变量名，类型，以及一个权限掩码。这个宏定义应该放到任何函数之外，典型的是出现在源文件的前面。因此hello将声明它的参数，使得insmod可用，如：
+static char* whom="world";
+static int howmany=1;
+module_param(howmany,int,S_IRUGO);
+module_param(whom,charp,S_IRUGO);
+模块加载也支持数组参数：
+module_param_array(name,type,num,perm);
+8、在用户空间做（听着有点别扭）
+用户空间驱动的好处在于：
+●    完整的C库可以连接，驱动可以进行许多特别的任务，不用依靠外部程序。
+●    程序员可以在驱动代码上运行常用的调试器，而不必走调试一个运行中的内核的弯路。
+●    如果一个用户空间驱动挂起了，你可以简单的杀掉它，驱动的问题不可能挂起整个系统，除非被控制的硬件真的疯掉了。
+用户内存是可交换的，不像内核内存，一个不常使用的却又很大一个驱动的设备不会占据别的程序可以用到的RAM，除非在它实习在用时。
+●    一个精心设计的驱动程序仍然可以像内核空间驱动一样，允许对设备的并行存取。
+●    如果你必须编写一个封闭源码的驱动，用户空间的选项使你容易避免不明朗的许可的情况，并改变内核接口带来的问题。
+用户空间的设备驱动有几个缺点：
+●     中断在用户空间无法用，在某些平台上有对这个限制的解决方法。
+●     只可能通过内存映射/dev/mem来使用DMA，而且只有特权用户可以这样做
+●     存取 I/O 端口只能在调用 ioperm 或者 iopl 之后. 此外, 不是所有的平台支持这些系统调用, 而
+存取/dev/port可能太慢而无效率. 这些系统调用和设备文件都要求特权用户.
+●     响应时间慢, 因为需要上下文切换在客户和硬件之间传递信息或动作.
+●     更不好的是, 如果驱动已被交换到硬盘, 响应时间会长到不可接受. 使用 mlock 系统调用可能
+会有帮助, 但是常常的你将需要锁住许多内存页, 因为一个用户空间程序依赖大量的库代码。
+mlock也限制在授权用户上。
+●     最重要的设备不能在用户空间处理, 包括但不限于网络接口和块设备。
+9、快速参考
+本节总结了我们在本章接触到的内核函数, 变量, 宏定义, 和 /proc 文件. 它的用意是作为一个参考.
+每一项列都在相关头文件的后面, 如果有. 从这里开始, 在几乎每章的结尾会有类似一节, 总结一章
+中介绍的新符号. 本节中的项通常以在本章中出现的顺序排列:
+insmod
+modprobe
+rmmod
+用户空间工具, 加载模块到运行中的内核以及去除它们.
+#include <linux/init.h>
+module_init(init_function);
+module_exit(cleanup_function);
+指定模块的初始化和清理函数的宏定义.
+__init
+__initdata
+__exit
+__exitdata
+函数( __init 和 __exit )和数据 (__initdata 和 __exitdata)的标记, 只用在模块初始化或者清理时
+间. 为初始化所标识的项可能会在初始化完成后丢弃; 退出的项可能被丢弃如果内核没有配
+置模块卸载. 这些标记通过使相关的目标在可执行文件的特定的 ELF（Executable and Linkable Format，可执行连接格式，是UNIX系统实验室（USL）作为应用程序二进制接口（Application Binary Interface，ABI）而开发和发布的。扩展名为elf）节里被替换来工作.
+#include <linux/sched.h>
+最重要的头文件中的一个. 这个文件包含很多驱动使用的内核 API 的定义, 包括睡眠函数和
+许多变量声明.
+struct task_struct *current;
+当前进程.
+current->pid
+current->comm
+进程 ID 和 当前进程的命令名.
+obj-m 一个 makefile 符号, 内核建立系统用来决定当前目录下的哪个模块应当被建立.
+/sys/module
+/proc/modules
+/sys/module 是一个 sysfs 目录层次, 包含当前加载模块的信息. /proc/moudles 是旧式的, 那种
+信息的单个文件版本. 其中的条目包含了模块名, 每个模块占用的内存数量, 以及使用计数.
+另外的字串追加到每行的末尾来指定标志, 对这个模块当前是活动的.
+vermagic.o
+来自内核源码目录的目标文件, 描述一个模块为之建立的环境.
+#include <linux/module.h>
+必需的头文件. 它必须在一个模块源码中包含.
+#include <linux/version.h>
+头文件, 包含在建立的内核版本信息.
+LINUX_VERSION_CODE
+整型宏定义, 对 #ifdef 版本依赖有用.
+EXPORT_SYMBOL (symbol);
+EXPORT_SYMBOL_GPL (symbol);
+宏定义, 用来输出一个符号给内核. 第 2 种形式输出没有版本信息, 第 3 种限制输出给 GPL 许
+可的模块.
+MODULE_AUTHOR(author);
+MODULE_DESCRIPTION(description);
+MODULE_VERSION(version_string);
+MODULE_DEVICE_TABLE(table_info);
+MODULE_ALIAS(alternate_name);
+放置文档在目标文件的模块中.
+module_init(init_function);
+module_exit(exit_function);
+宏定义, 声明一个模块的初始化和清理函数.
+#include <linux/moduleparam.h>
+module_param(variable, type, perm);
+宏定义, 创建模块参数, 可以被用户在模块加载时调整( 或者在启动时间, 对于内嵌代码). 类
+型可以是 bool, charp, int, invbool, short, ushort, uint, ulong, 或者 intarray.
+#include <linux/kernel.h>
+int printk(const char * fmt, ...);
+内核代码的 printf 类似物。
+

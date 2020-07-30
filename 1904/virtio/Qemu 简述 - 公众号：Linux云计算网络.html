@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="origin" />
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <title>Qemu 简述 - 长亭ctim - 博客园</title>
+    <meta property="og:description" content="本文首发于我的公众号 Linux云计算网络（id: cloud_dev） ，专注于干货分享，号内有 10T 书籍和视频资源，后台回复 「1024」 即可领取，欢迎大家关注，二维码文末可以扫。 Qemu" />
+    <link type="text/css" rel="stylesheet" href="/bundles/blog-common.css?v=KOZafwuaDasEedEenI5aTy8aXH0epbm6VUJ0v3vsT_Q1"/>
+<link id="MainCss" type="text/css" rel="stylesheet" href="/skins/Custom/bundle-Custom.css?v=Z683z9azGWin6jOfOyAHK6FgPVxm_nmCnl3EFztc2eE1"/>
+<link type="text/css" rel="stylesheet" href="/blog/customcss/124300.css?v=JhwZO1D1adarLhU1VVmMFze%2fyXk%3d"/>
+<link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="/skins/Custom/bundle-Custom-mobile.css?v=_msYCBCTPwxsehifP8ZdBI6kxamcIjzp-IKwPnrrPeg1"/>
+    <link title="RSS" type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/bakari/rss"/>
+    <link title="RSD" type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/bakari/rsd.xml"/>
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/bakari/wlwmanifest.xml"/>
+    <script src="//common.cnblogs.com/scripts/jquery-2.2.0.min.js"></script>
+    <script>var currentBlogId=124300;var currentBlogApp='bakari',cb_enable_mathjax=true;var isLogined=true;</script>
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']], processClass: 'math', processEscapes: true },
+        TeX: { 
+            equationNumbers: { autoNumber: ['AMS'], useLabelIds: true }, 
+            extensions: ['extpfeil.js'],
+            Macros: {bm: "\\boldsymbol"}
+        },
+        'HTML-CSS': { linebreaks: { automatic: true } },
+        SVG: { linebreaks: { automatic: true } }
+        });
+    </script><script src="//mathjax.cnblogs.com/2_7_2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script src="/bundles/blog-common.js?v=smtcUT5dhdu_5eEO8CKHYoVc7DPLgEBGzp6zKkstlzg1" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+
+<!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+	<a id="lnkBlogLogo" href="https://www.cnblogs.com/bakari/"><img id="blogLogo" src="/Skins/custom/images/logo.gif" alt="返回主页" /></a>			
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="https://www.cnblogs.com/bakari/">公众号：Linux云计算网络</a></h1>
+<h2>专注 Linux、网络、云计算技术栈，欢迎关注我的微信公众号「Linux云计算网络」</h2>
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+	<div id="navigator">
+		
+<ul id="navList">
+<li><a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/">博客园</a></li>
+<li><a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/bakari/">首页</a></li>
+<li><a id="blog_nav_newpost" class="menu" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+<li><a id="blog_nav_contact" class="menu" rel="nofollow" href="https://msg.cnblogs.com/send/%E9%95%BF%E4%BA%ADctim">联系</a></li>
+<li><a id="blog_nav_rss" class="menu" href="https://www.cnblogs.com/bakari/rss">订阅</a>
+<!--<a id="blog_nav_rss_image" class="aHeaderXML" href="https://www.cnblogs.com/bakari/rss"><img src="//www.cnblogs.com/images/xml.gif" alt="订阅" /></a>--></li>
+<li><a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+</ul>
+		<div class="blogStats">
+			
+			<div id="blog_stats">
+<span id="stats_post_count">随笔 - 194&nbsp; </span>
+<span id="stats_article_count">文章 - 1&nbsp; </span>
+<span id="stats-comment_count">评论 - 155</span>
+</div>
+			
+		</div><!--end: blogStats -->
+	</div><!--end: navigator 博客导航栏 -->
+</div><!--end: header 头部 -->
+
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		
+        <div id="post_detail">
+<!--done-->
+<div id="topics">
+	<div class = "post">
+		<h1 class = "postTitle">
+			<a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/bakari/p/7858029.html">Qemu 简述</a>
+		</h1>
+		<div class="clear"></div>
+		<div class="postBody">
+			<div id="cnblogs_post_body" class="blogpost-body cnblogs-markdown"><blockquote>
+<p>本文首发于我的公众号 <strong>Linux云计算网络（id: cloud_dev）</strong>，专注于干货分享，号内有 <strong>10T</strong> 书籍和视频资源，后台回复<strong>「1024」</strong>即可领取，欢迎大家关注，二维码文末可以扫。</p>
+</blockquote>
+<h2 id="qemu-架构">Qemu 架构</h2>
+<p>Qemu 是纯软件实现的虚拟化模拟器，几乎可以模拟任何硬件设备，我们最熟悉的就是能够模拟一台能够独立运行操作系统的虚拟机，虚拟机认为自己和硬件打交道，但其实是和 Qemu 模拟出来的硬件打交道，Qemu 将这些指令转译给真正的硬件。</p>
+<p>正因为 Qemu 是纯软件实现的，所有的指令都要经 Qemu 过一手，性能非常低，所以，在生产环境中，大多数的做法都是配合 KVM 来完成虚拟化工作，因为 KVM 是硬件辅助的虚拟化技术，主要负责 比较繁琐的 CPU 和内存虚拟化，而 Qemu 则负责 I/O 虚拟化，两者合作各自发挥自身的优势，相得益彰。</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201711/431521-20171118213522843-322721697.png" /></p>
+<p>从本质上看，虚拟出的每个虚拟机对应 host 上的一个 Qemu 进程，而虚拟机的执行线程（如 CPU 线程、I/O 线程等）对应 Qemu 进程的一个线程。下面通过一个虚拟机启动过程看看 Qemu 是如何与 KVM 交互的。</p>
+<pre><code>// 第一步，获取到 KVM 句柄
+kvmfd = open(&quot;/dev/kvm&quot;, O_RDWR);
+// 第二步，创建虚拟机，获取到虚拟机句柄。
+vmfd = ioctl(kvmfd, KVM_CREATE_VM, 0);
+// 第三步，为虚拟机映射内存，还有其他的 PCI，信号处理的初始化。
+ioctl(kvmfd, KVM_SET_USER_MEMORY_REGION, &amp;mem);
+// 第四步，将虚拟机镜像映射到内存，相当于物理机的 boot 过程，把镜像映射到内存。
+// 第五步，创建 vCPU，并为 vCPU 分配内存空间。
+ioctl(kvmfd, KVM_CREATE_VCPU, vcpuid);
+vcpu-&gt;kvm_run_mmap_size = ioctl(kvm-&gt;dev_fd, KVM_GET_VCPU_MMAP_SIZE, 0);
+// 第五步，创建 vCPU 个数的线程并运行虚拟机。
+ioctl(kvm-&gt;vcpus-&gt;vcpu_fd, KVM_RUN, 0);
+// 第六步，线程进入循环，并捕获虚拟机退出原因，做相应的处理。
+for (;;) {
+  ioctl(KVM_RUN)
+  switch (exit_reason) {
+      case KVM_EXIT_IO:  /* ... */
+      case KVM_EXIT_HLT: /* ... */
+  }
+}
+// 这里的退出并不一定是虚拟机关机，
+// 虚拟机如果遇到 I/O 操作，访问硬件设备，缺页中断等都会退出执行，
+// 退出执行可以理解为将 CPU 执行上下文返回到 Qemu。
+</code></pre>
+<h2 id="qemu-源码结构">Qemu 源码结构</h2>
+<p>Qemu 软件虚拟化实现的思路是采用二进制指令翻译技术，主要是提取 guest 代码，然后将其翻译成 TCG 中间代码，最后再将中间代码翻译成 host 指定架构的代码，如 x86 体系就翻译成其支持的代码形式，ARM 架构同理。</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201711/431521-20171118213922843-1644390821.png" /></p>
+<p>所以，从宏观上看，源码结构主要包含以下几个部分：</p>
+<ul>
+<li>/vl.c：最主要的模拟循环，虚拟机环境初始化，和 CPU 的执行。</li>
+<li>/target-arch/translate.c：将 guest 代码翻译成不同架构的 TCG 操作码。</li>
+<li>/tcg/tcg.c：主要的 TCG 代码。</li>
+<li>/tcg/arch/tcg-target.c：将 TCG 代码转化生成主机代码。</li>
+<li>/cpu-exec.c：主要寻找下一个二进制翻译代码块，如果没有找到就请求得到下一个代码块，并且操作生成的代码块。</li>
+</ul>
+<p>其中，涉及的主要几个函数如下：</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">函数</th>
+<th style="text-align: center;">路径</th>
+<th style="text-align: center;">注释</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">main_loop</td>
+<td style="text-align: center;">{/vl.c}</td>
+<td style="text-align: center;">很多条件的判断，如电源是否断等</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">qemu_main_loop_start</td>
+<td style="text-align: center;">{/cpus.c}</td>
+<td style="text-align: center;">分时运行 CPU 核</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">struct CPUState</td>
+<td style="text-align: center;">{/target-xyz/cpu.h}</td>
+<td style="text-align: center;">CPU 状态结构体</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">cpu_exec</td>
+<td style="text-align: center;">{/cpu-exec.c}</td>
+<td style="text-align: center;">主要的执行循环</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">struct TranslationBlock</td>
+<td style="text-align: center;">{/exec-all.h}</td>
+<td style="text-align: center;">TB（二进制翻译代码块） 结构体</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">cpu_gen_code</td>
+<td style="text-align: center;">{translate-all.c}</td>
+<td style="text-align: center;">初始化真正代码生成</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">tcg_gen_code</td>
+<td style="text-align: center;">{/tcg/tcg.c}</td>
+<td style="text-align: center;">tcg 代码翻译成 host 代码</td>
+</tr>
+</tbody>
+</table>
+<p>知道了这个总体的代码结构，再去具体了解每一个模块可能会相对容易一点。</p>
+<h2 id="qemu-的使用">Qemu 的使用</h2>
+<h3 id="源码下载">1. 源码下载</h3>
+<pre><code>centos：
+sudo apt-get install qemu
+ubuntu：
+sudo yum install qemu -y
+安装包：
+$wget http://wiki.qemu-project.org/download/qemu-2.0.0.tar.bz2
+$tar xjvf qemu-2.0.0.tar.bz2
+Git：
+$git clone git://git.qemu-project.org/qemu.git
+</code></pre>
+<h3 id="编译及安装">2. 编译及安装</h3>
+<pre><code>$cd qemu-2.0.0 //如果使用的是git下载的源码，执行cd qemu
+$./configure --enable-kvm --enable-debug --enable-vnc --enable-werror  --target-list=&quot;x86_64-softmmu&quot;
+$make -j8
+$sudo make install
+</code></pre>
+<p>configure 脚本用于生成 Makefile，其选项可以用 ./configure --help 查看。</p>
+<p>这里使用到的选项含义如下：</p>
+<ul>
+<li>--enable-kvm：编译 KVM 模块，使 Qemu 可以利用 KVM 来访问硬件提供的虚拟化服务。</li>
+<li>--enable-vnc：启用 VNC。</li>
+<li>--enalbe-werror：编译时，将所有的警告当作错误处理。</li>
+<li>--target-list：选择目标机器的架构。默认是将所有的架构都编译，但为了更快的完成编译，指定需要的架构即可。</li>
+</ul>
+<p>安装好之后，会生成如下应用程序：</p>
+<p><img src="https://images2017.cnblogs.com/blog/431521/201711/431521-20171118214806624-1556865715.png" /></p>
+<ul>
+<li>ivshmem-client/server：这是一个 guest 和 host 共享内存的应用程序，遵循 C/S 的架构。</li>
+<li>qemu-ga：这是一个不利用网络实现 guest 和 host 之间交互的应用程序（使用 virtio-serial），运行在 guest 中。</li>
+<li>qemu-io：这是一个执行 Qemu I/O 操作的命令行工具。</li>
+<li>qemu-system-x86_64：Qemu 的核心应用程序，虚拟机就由它创建的。</li>
+<li>qemu-img：创建虚拟机镜像文件的工具，下面有例子说明。</li>
+<li>qemu-nbd：磁盘挂载工具。</li>
+</ul>
+<p>下面通过创建虚拟机操作来对这些工具有个初步的认识。</p>
+<h3 id="创建虚拟机">3. 创建虚拟机</h3>
+<ul>
+<li>使用qemu-img创建虚拟机镜像</li>
+</ul>
+<p>虚拟机镜像用来模拟虚拟机的硬盘，在启动虚拟机之前需要创建镜像文件。</p>
+<pre><code>qemu-img create -f qcow2 test-vm-1.qcow2 10G
+</code></pre>
+<p>-f 选项用于指定镜像的格式，qcow2 格式是 Qemu 最常用的镜像格式，采用来写时复制技术来优化性能。test-vm-1.qcow2 是镜像文件的名字，10G是镜像文件大小。镜像文件创建完成后，可使用 qemu-system-x86 来启动x86 架构的虚拟机.</p>
+<ul>
+<li>使用 qemu-system-x86 来启动 x86 架构的虚拟机</li>
+</ul>
+<pre><code>qemu-system-x86_64 test-vm-1.qcow2
+</code></pre>
+<p>因为 test-vm-1.qcow2 中并未给虚拟机安装操作系统，所以会提示 “No bootable device”，无可启动设备。</p>
+<ul>
+<li>启动 VM 安装操作系统镜像</li>
+</ul>
+<pre><code>qemu-system-x86_64 -m 2048 -enable-kvm test-vm-1.qcow2 -cdrom ./Centos-Desktop-x86_64-20-1.iso
+</code></pre>
+<p>-m 指定虚拟机内存大小，默认单位是 MB， -enable-kvm 使用 KVM 进行加速，-cdrom 添加 fedora 的安装镜像。可在弹出的窗口中操作虚拟机，安装操作系统，安装完成后重起虚拟机便会从硬盘 ( test-vm-1.qcow2 ) 启动。之后再启动虚拟机只需要执行：</p>
+<pre><code>qemu-system-x86_64 -m 2048 -enable-kvm test-vm-1.qcow2
+</code></pre>
+<p>qemu-img 支持非常多种的文件格式，可以通过 qemu-img -h 查看.<br />
+其中 raw 和 qcow2 是比较常用的两种，raw 是 qemu-img 命令默认的，qcow2 是 qemu 目前推荐的镜像格式，是功能最多的格式。这些知识后面会有文章来专门讲述。</p>
+<hr />
+<blockquote>
+<p>我的公众号 <strong>「Linux云计算网络」(id: cloud_dev)</strong> ，号内有 <strong>10T</strong> 书籍和视频资源，后台回复 <strong>「1024」</strong> 即可领取，分享的内容包括但不限于 Linux、网络、云计算虚拟化、容器Docker、OpenStack、Kubernetes、工具、SDN、OVS、DPDK、Go、Python、C/C++编程技术等内容，欢迎大家关注。</p>
+</blockquote>
+<blockquote>
+<p><img src="https://img2018.cnblogs.com/blog/431521/201904/431521-20190415111037844-1058636985.png" /></p>
+</blockquote>
+</div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory"></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info">
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"></div>
+</div>
+
+
+		</div>
+		<div class = "postDesc">posted @ <span id="post-date">2017-11-19 12:22</span> <a href='https://www.cnblogs.com/bakari/'>ctimbai</a> 阅读(<span id="post_view_count">...</span>) 评论(<span id="post_comment_count">...</span>)  <a href ="https://i.cnblogs.com/EditPosts.aspx?postid=7858029" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(7858029);return false;">收藏</a></div>
+	</div>
+	<script src="//common.cnblogs.com/highlight/9.12.0/highlight.min.js"></script><script>markdown_highlight();</script><script type="text/javascript">var allowComments=true,cb_blogId=124300,cb_entryId=7858029,cb_blogApp=currentBlogApp,cb_blogUserGuid='0bb9f45d-f5d6-e111-aa3f-842b2b196315',cb_entryCreatedDate='2017/11/19 12:22:00';loadViewCount(cb_entryId);var cb_postType=1;var isMarkdown=true;</script>
+	
+</div><!--end: topics 文章、评论容器-->
+</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id='comment_form' class='commentform'>
+<a name='commentform'></a>
+<div id='divCommentShow'></div>
+<div id='comment_nav'><span id='span_refresh_tips'></span><a href='javascript:void(0);' onclick='return RefreshCommentList();' id='lnk_RefreshComments' runat='server' clientidmode='Static'>刷新评论</a><a href='#' onclick='return RefreshPage();'>刷新页面</a><a href='#top'>返回顶部</a></div>
+<div id='comment_form_container'></div>
+<div class='ad_text_commentbox' id='ad_text_under_commentbox'></div>
+<div id='ad_t2'></div>
+<div id='opt_under_post'></div>
+<script async='async' src='https://www.googletagservices.com/tag/js/gpt.js'></script>
+<script>
+  var googletag = googletag || {};
+  googletag.cmd = googletag.cmd || [];
+</script>
+<script>
+  googletag.cmd.push(function() {
+        googletag.defineSlot('/1090369/C1', [300, 250], 'div-gpt-ad-1546353474406-0').addService(googletag.pubads());
+        googletag.defineSlot('/1090369/C2', [468, 60], 'div-gpt-ad-1539008685004-0').addService(googletag.pubads());
+        googletag.pubads().enableSingleRequest();
+        googletag.enableServices();
+  });
+</script>
+<div id='cnblogs_c1' class='c_ad_block'>
+    <div id='div-gpt-ad-1546353474406-0' style='height:250px; width:300px;'></div>
+</div>
+<div id='under_post_news'></div>
+<div id='cnblogs_c2' class='c_ad_block'>
+    <div id='div-gpt-ad-1539008685004-0' style='height:60px; width:468px;'></div>
+</div>
+<div id='under_post_kb'></div>
+<div id='HistoryToday' class='c_ad_block'></div>
+<script type='text/javascript'>
+ if(enablePostBottom()) {
+    codeHighlight();
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverT2();
+    deliverC1();
+    deliverC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);  
+}
+</script>
+</div>
+
+    
+	</div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+
+	<div id="sideBar">
+		<div id="sideBarMain">
+			
+<!--done-->
+<div class="newsItem">
+<h3 class="catListTitle">公告</h3>
+	<div id="blog-news"></div><script type="text/javascript">loadBlogNews();</script>
+</div>
+
+			<div id="blog-calendar" style="display:none"></div><script type="text/javascript">loadBlogDefaultCalendar();</script>
+			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn"></div><script type="text/javascript">loadBlogSideColumn();</script>
+			</div>
+			
+		</div><!--end: sideBarMain -->
+	</div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<div id="footer">
+		
+<!--done-->
+Copyright &copy;2019 长亭ctim
+	</div><!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+
+</body>
+</html>

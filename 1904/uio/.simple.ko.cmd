@@ -1,0 +1,1 @@
+cmd_/home/zj/lfc/study/uio/simple.ko := ld -r -m elf_x86_64 -z max-page-size=0x200000 -T ./scripts/module-common.lds --build-id  -o /home/zj/lfc/study/uio/simple.ko /home/zj/lfc/study/uio/simple.o /home/zj/lfc/study/uio/simple.mod.o ;  true

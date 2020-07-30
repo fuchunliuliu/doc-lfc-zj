@@ -1,0 +1,128 @@
+﻿virtio的eventfd机制浅析
+
+gavin4code 2015-11-10 20:29:08  3184  收藏 1
+分类专栏： kvm qemu
+版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明。
+本文链接：https://blog.csdn.net/gavin4code/article/details/49764781
+收起
+virtio是KVM环境下的I/O虚拟化的框架，目前已经使用到的虚拟化设备包括block、net、scsi，本质是guest os与host os间的一种高效通信机制。本文旨在对virtio通信用到的eventfd进行分析。为了描述简单，一般来说，称guest侧通知host侧的行为为kick，host侧通知guset侧的行为为call。
+参考资料：
+1. virtio spec
+2. Virtio 基本概念和设备操作
+3. note
+
+1. 什么是eventfd?
+eventfd是只存在于内存中的文件，通过系统调用sys_eventfd可以创建新的文件，它可以用于线程间、进程间的通信，无论是内核态或用户态。其实现机制并不复杂，参考内核源码树的fs/eventfd.c文件，看数据结构struct eventfd_ctx的定义：
+
+ struct eventfd_ctx {
+         struct kref kref;
+         wait_queue_head_t wqh;
+         /*
+          * Every time that a write(2) is performed on an eventfd, the
+          * value of the __u64 being written is added to "count" and a
+          * wakeup is performed on "wqh". A read(2) will return the "count"
+          * value to userspace, and will reset "count" to zero. The kernel
+          * side eventfd_signal() also, adds to the "count" counter and
+          * issue a wakeup.
+          */
+         __u64 count;
+         unsigned int flags;
+ };
+
+eventfd的信号实际上就是上面的count，write的时候对其++，read的时候则清零（并不绝对正确）。wait_queue_head wqh则是用来保存监听eventfd的睡眠进程，每当有进程来epoll、select且此时不存在有效的信号(count <= 0)，则sleep在wqh上。当某一进程对该eventfd进行write的时候，则会唤醒wqh上的睡眠进程。代码细节参考eventfd_read(), eventfd_write()。
+
+virtio用到的eventfd其实是kvm中的ioeventfd机制，是对eventfd的又一层封装（eventfd + iodevice）。该机制不进一步细说，下面结合virtio的kick操作使用来分析，包括两部分：
+1. 如何设置：如何协商该eventfd？
+2. 如何产生kick信号：是谁来负责写从而产生kick信号？
+
+2. 如何设置？
+即qemu用户态进程是如何和kvm.ko来协商使用哪一个eventfd来kick通信。
+这里就要用到kvm的一个系统调用：ioctl(KVM_IOEVENTFD, struct kvm_ioeventfd)，找一下qemu代码中执行该系统调用的路径：
+
+memory_region_transaction_commit() {
+    address_space_update_ioeventfds() {
+        address_space_add_del_ioeventfds() {
+            MEMORY_LISTENER_CALL(eventfd_add, Reverse, &section,
+            fd->match_data, fd->data, fd->e);
+        }
+    }
+}
+
+
+上面的eventfd_add有两种可能的执行路径：
+1. mmio(Memory mapping I/O): kvm_mem_ioeventfd_add()
+2. pio(Port I/O): kvm_io_ioeventfd_add()
+
+通过代码静态分析，上面的调用路径其实只找到了一半，接下来使用gdb来查看memory_region_transaction_commit()可能的执行路径，结合vhost_blk（qemu用户态新增的一项功能，跟qemu-virtio或dataplane在I/O链路上的层次类似）看一下设置eventfd的执行路径:
+
+#0  memory_region_transaction_commit () at /home/gavin4code/qemu-2-1-2/memory.c:799
+#1  0x0000000000462475 in memory_region_add_eventfd (mr=0x1256068, addr=16, size=2, match_data=true, data=0, e=0x1253760)
+    at /home/gavin4code/qemu-2-1-2/memory.c:1588
+#2  0x00000000006d483e in virtio_pci_set_host_notifier_internal (proxy=0x1255820, n=0, assign=true, set_handler=false)
+    at hw/virtio/virtio-pci.c:200
+#3  0x00000000006d6361 in virtio_pci_set_host_notifier (d=0x1255820, n=0, assign=true) at hw/virtio/virtio-pci.c:884
+#4  0x00000000004adb90 in vhost_dev_enable_notifiers (hdev=0x12e6b30, vdev=0x12561f8)
+    at /home/gavin4code/qemu-2-1-2/hw/virtio/vhost.c:932
+#5  0x00000000004764db in vhost_blk_start (vb=0x1256368) at /home/gavin4code/qemu-2-1-2/hw/block/vhost-blk.c:189
+#6  0x00000000004740e5 in virtio_blk_handle_output (vdev=0x12561f8, vq=0x1253710)
+    at /home/gavin4code/qemu-2-1-2/hw/block/virtio-blk.c:456
+#7  0x00000000004a729e in virtio_queue_notify_vq (vq=0x1253710) at /home/gavin4code/qemu-2-1-2/hw/virtio/virtio.c:774
+#8  0x00000000004a9196 in virtio_queue_host_notifier_read (n=0x1253760) at /home/gavin4code/qemu-2-1-2/hw/virtio/virtio.c:1265
+#9  0x000000000073d23e in qemu_iohandler_poll (pollfds=0x119e4c0, ret=1) at iohandler.c:143
+#10 0x000000000073ce41 in main_loop_wait (nonblocking=0) at main-loop.c:485
+#11 0x000000000055524a in main_loop () at vl.c:2031
+#12 0x000000000055c407 in main (argc=48, argv=0x7ffff99985c8, envp=0x7ffff9998750) at vl.c:4592
+
+整体执行路径还是很清晰的，vhost模块的vhost_dev_enable_notifiers()来告诉kvm需要用到的eventfd。
+
+3. 如何产生kick信号？
+大体上来说，guest os觉得有必要通知host对virtqueue上的请求进行处理，就会执行vp_notify()，相当于执行一次port I/O（或者mmio），虚拟机则会退出guest mode。这里假设使用的是intel的vmx，当检测到pio或者mmio会设置vmcs中的exit_reason，host内核态执行vmx_handle_eixt()，检测exit_reason并执行相应的handler函数（kernel_io()），整体的执行路径如下：
+
+vmx_handle_eixt() {
+    /* kvm_vmx_exit_handlers[exit_reason](vcpu); */
+    handle_io() {
+        kvm_emulate_pio() {
+            kernel_io() {
+                if (read) {
+                    kvm_io_bus_read() {
+
+                    }
+                } else {
+                    kvm_io_bus_write() {
+                        ioeventfd_write();
+                }
+            }
+        }
+    }
+}
+
+
+最后会执行到ioeventfd_write()，这样就产生了一次kick信号。
+如果该eventfd是由qemu侧来监听的，则会执行对应的qemu函数kvm_handle_io()；如果是vhost来监听的，则直接在vhost内核模块执行vhost->handle_kick()。
+
+qemu kmv_handle_io()的调用栈如下所示:
+
+Breakpoint 1, virtio_ioport_write (opaque=0x1606400, addr=18, val=0) at hw/virtio/virtio-pci.c:270
+270   {
+(gdb) t
+[Current thread is 4 (Thread 0x414e7940 (LWP 29695))]
+(gdb) bt
+#0  virtio_ioport_write (opaque=0x1606400, addr=18, val=0) at hw/virtio/virtio-pci.c:270
+#1  0x00000000006d4218 in virtio_pci_config_write (opaque=0x1606400, addr=18, val=0, size=1) at hw/virtio/virtio-pci.c:435
+#2  0x000000000045c716 in memory_region_write_accessor (mr=0x1606c48, addr=18, value=0x414e6da8, size=1, shift=0, mask=255) at /home/gavin4code/qemu/memory.c:444
+#3  0x000000000045c856 in access_with_adjusted_size (addr=18, value=0x414e6da8, size=1, access_size_min=1, access_size_max=4, access=0x45c689 <memory_region_write_accessor>, mr=0x1606c48)
+    at /home/gavin4code/qemu/memory.c:481
+#4  0x000000000045f84f in memory_region_dispatch_write (mr=0x1606c48, addr=18, data=0, size=1) at /home/gavin4code/qemu/memory.c:1138
+#5  0x00000000004630be in io_mem_write (mr=0x1606c48, addr=18, val=0, size=1) at /home/gavin4code/qemu/memory.c:1976
+#6  0x000000000040f030 in address_space_rw (as=0xd05d00 <address_space_io>, addr=49170, buf=0x7f4994f6b000 "", len=1, is_write=true) at /home/gavin4code/qemu/exec.c:2114
+#7  0x0000000000458f62 in kvm_handle_io (port=49170, data=0x7f4994f6b000, direction=1, size=1, count=1) at /home/gavin4code/qemu/kvm-all.c:1674
+#8  0x00000000004594c6 in kvm_cpu_exec (cpu=0x157ec50) at /home/gavin4code/qemu/kvm-all.c:1811
+#9  0x0000000000440364 in qemu_kvm_cpu_thread_fn (arg=0x157ec50) at /home/gavin4code/qemu/cpus.c:930
+#10 0x0000003705e0677d in start_thread () from /lib64/libpthread.so.0
+#11 0x00000037056d49ad in clone () from /lib64/libc.so.6
+#12 0x0000000000000000 in ?? ()
+
+至此，整个virtio的evenfd机制分析结束。
+————————————————
+版权声明：本文为CSDN博主「gavin4code」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/gavin4code/article/details/49764781
